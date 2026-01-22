@@ -22,10 +22,10 @@ Catégorisé une oeuvre (a voir/faire, terminé, abandonné, sortie prochaine)
 Recherche dans la liste par nom.
 
 Bonus:
-Notification (pour des oeuvres qui sortent prochainement mais déjà dans la liste).
 Recherche par tag.
 
 5. Hors scope (important)
 
 Partage de liste. (le projet étant perso il n'y aura personne d'autre avec qui partagé)
+Notification (pour des oeuvres qui sortent prochainement mais déjà dans la liste).
 Recommandations.
