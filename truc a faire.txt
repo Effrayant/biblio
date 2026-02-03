@@ -1,0 +1,15 @@
+test toutes les requetes juste pour être sur!!!!!
+
+
+Ce que tu peux mettre dans les paramètres (engrenage)
+
+Choix du thème (clair/sombre)
+Type d'affichage (grille/liste/compact)
+Colonnes à afficher dans le tableau
+Nombre d'éléments par page
+Export des données (CSV, JSON...)
+Réinitialiser les filtres
+À propos de l'application
+
+Pour le tri go le faire en haut du tableau de façon classique et a la limite les hauts de colonne seront dans le header je pense ou dans un deuxieme header si le premier est repliable 
+A la limite mettre une icone en haut a droite pour des tris plus spécifiques.

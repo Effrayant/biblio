@@ -1,5 +1,5 @@
 async function afficherOeuvres() {
-  const res = await fetch("http://localhost:3000/oeuvres/");
+  const res = await fetch("http://localhost:3000/oeuvres");
   const oeuvres = await res.json();
 
   const container = document.querySelector('#oeuvres');

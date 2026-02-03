@@ -1,9 +1,11 @@
+require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
+const pool = require("./db")
 
 const app = express();
-app.use(cors());
 app.use(express.json());
+app.use(cors());
 const PORT = 3000;
 
 const TYPES_AUTORISES = ["Film", "Serie", "Jeu", "Manga", "Manhwa", "Webcomic", "Video"];
@@ -111,7 +113,7 @@ function validationOeuvrePost(body) { //fonction de validation des champs pour l
   return null; // tout est OK
 }
 
-function validattionOeuvrePatch(body) { //fonction de validation des champs pour la route PATCH
+function validationOeuvrePatch(body) { //fonction de validation des champs pour la route PATCH
   const CHAMPS_AUTORISES = ["statut", "note", "progression", "commentaire"];
 
   // body vide
@@ -164,112 +166,159 @@ app.get("/health", (req, res) => {
 // GET
 // --------------------
 
-app.get("/oeuvres", (req, res) => {
-  res.json(oeuvres);
+app.get("/oeuvres", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM oeuvres ORDER BY id");
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur DB" });
+  }
 });
 
-app.get("/oeuvres/:id", (req, res) => {
+app.get("/oeuvres/:id", async (req, res) => {
   const id = Number(req.params.id);
-  const oeuvre = oeuvres.find(o => o.id === id);
 
-  if (!oeuvre) {
+  const result = await pool.query("SELECT * FROM oeuvres WHERE id = $1", [id]);
+
+  if (result.rows.length === 0) {
     return res.status(404).json({ error: "Oeuvre non trouvée" });
   }
 
-  res.json(oeuvre);
+  res.json(result.rows[0]);
 });
 
 // --------------------
 // POST
 // --------------------
 
-app.post("/oeuvres", (req, res) => {
+app.post("/oeuvres", async (req, res) => {
   const error = validationOeuvrePost(req.body);
   if (error) {
     return res.status(400).json({ error });
   }
 
-  const nouvelleOeuvre = {
-    id: oeuvres.length + 1,
-    titre: req.body.titre,
-    type: req.body.type,
-    statut: req.body.statut,
-    note: req.body.note,
-    progression: req.body.progression ?? null,
-    commentaire: req.body.commentaire ?? null
-  };
+  try {
+    const { titre, type, statut, note, progression, commentaire } = req.body;
 
-  oeuvres.push(nouvelleOeuvre);
-  return res.status(201).json(nouvelleOeuvre);
+    const result = await pool.query(
+      `INSERT INTO oeuvres
+       (titre, type, statut, note, progression, commentaire)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [
+        titre,
+        type,
+        statut,
+        note,
+        progression ?? null,
+        commentaire ?? null
+      ]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur DB" });
+  }
 });
 
 // --------------------
 // DELETE
 // --------------------
 
-app.delete("/oeuvres/:id", (req, res) => {
+app.delete("/oeuvres/:id", async (req, res) => {
   const id = Number(req.params.id);
-  const index = oeuvres.findIndex(o => o.id === id);
 
-  if (index === -1) {
-    return res.status(404).json({ error: "Oeuvre non trouvée" });
+  try{
+      const result = await pool.query(`DELETE FROM oeuvres WHERE id = $1 RETURNING *`, [id]);
+
+      if (result.rows.length === 0){
+        return res.status(404).json({error: "Oeuvre non trouvée"});
+      }
+
+      res.status(204).send();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur DB" });
   }
-
-  oeuvres.splice(index, 1);
-  res.status(204).send();
 });
 
 // --------------------
 // PUT (remplacement complet)
 // --------------------
 
-app.put("/oeuvres/:id", (req, res) => {
+app.put("/oeuvres/:id", async (req, res) => {
   const id = Number(req.params.id);
-  const index = oeuvres.findIndex(o => o.id === id);
 
-  if (index === -1) {
-    return res.status(404).json({ error: "Oeuvre non trouvée" });
+  const error = validationOeuvrePut(req.body);
+  if (error) {
+    return res.status(400).json({ error });
   }
 
-  const oeuvreModifiee = {
-    id,
-    titre: req.body.titre,
-    type: req.body.type,
-    statut: req.body.statut,
-    note: req.body.note,
-    progression: req.body.progression ?? null,
-    commentaire: req.body.commentaire ?? null
-  };
+  try {
+    const { titre, type, statut, note, progression, commentaire } = req.body;
 
-  oeuvres[index] = oeuvreModifiee;
-  res.status(200).json(oeuvreModifiee);
+    const result = await pool.query(
+      `UPDATE oeuvres
+       SET titre = $2, type = $3, statut = $4, note = $5, progression = $6, commentaire = $7
+       WHERE id = $1
+       RETURNING *`,
+      [id, titre, type, statut, note, progression ?? null, commentaire ?? null]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Oeuvre non trouvée" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur DB" });
+  }
 });
 
 // --------------------
 // PATCH (remplacement partiel)
 // --------------------
 
-app.patch("/oeuvres/:id", (req, res) => {
-  const error = validatePatchOeuvre(req.body);
+app.patch("/oeuvres/:id", async (req, res) => {
+  const id = Number(req.params.id);
+
+  const error = validationOeuvrePatch(req.body);
   if (error) {
     return res.status(400).json({ error });
   }
 
-  const id = Number(req.params.id);
-  const index = oeuvres.findIndex(o => o.id === id);
+  try {
+    const fields = [];
+    const values = [];
+    let index = 1;
 
-  if (index === -1) {
-    return res.status(404).json({ error: "Oeuvre non trouvée" });
+    for (const key in req.body) {
+      fields.push(`${key} = $${index + 1}`);
+      values.push(req.body[key]);
+      index++;
+    }
+
+    const query = `
+      UPDATE oeuvres
+      SET ${fields.join(", ")}
+      WHERE id = $1
+      RETURNING *
+    `;
+
+    const result = await pool.query(query, [id, ...values]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Oeuvre non trouvée" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur DB" });
   }
-
-  const o = oeuvres[index];
-
-  if ("statut" in req.body) o.statut = req.body.statut;
-  if ("note" in req.body) o.note = req.body.note;
-  if ("progression" in req.body) o.progression = req.body.progression;
-  if ("commentaire" in req.body) o.commentaire = req.body.commentaire;
-
-  return res.status(200).json(o);
 });
 
 // --------------------
