@@ -11,15 +11,15 @@
 <body>
     <header class="header">
         <div class="header__brand">
-            <img class="header__icon" src="assets/icons/La Biblio magique enchantée.png" height="75px" width="75px" alt="Loco principale">
-            <h1 class="header__title"> La Bibliothéque Magique</h1>
+            <img class="header__icon" src="assets/icons/La Biblio magique enchantée.png" height="75px" width="75px" alt="Logo principale">
+            <h1 class="header__title">La Bibliothèque Magique</h1>
         </div>
 
-        <div class="search-container">
-            <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="header__search-container">
+            <svg class="header__search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
-            <input type="text" class="search-input" placeholder="Rechercher par titre, tag ou type.">
+            <input type="text" class="search-input" placeholder="Rechercher">
         </div>
         
         <div class="header__buttons">
@@ -43,6 +43,29 @@
             </button>
         </div>
     </header>
-    <div id="oeuvres"></div>
+    <div id="tableauOeuvres">
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">Titre</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Statut</th>
+                    <th scope="col">Note</th>
+                    <th scope="col">Progression</th>
+                    <th scope="col">Options</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row">LoL</th>
+                    <td>Jeu</td>
+                    <td>En cours</td>
+                    <td>9.5</td>
+                    <td>Infini</td>
+                    <td>rien</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </body>
 </html>

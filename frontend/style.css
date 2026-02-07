@@ -1,157 +1,79 @@
-:root {
-    --primary-dark: #1a1a1a;
-    --primary-light: #f8f6f1;
-    --accent-gold: #d4af37;
-    --accent-deep: #8b7355;
-    --text-primary: #2c2c2c;
-    --text-secondary: #6b6b6b;
-    --border-color: #e0ddd5;
-    --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.04);
-    --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.08);
-}
-
-body{
-    font-family: 'Work Sans', sans-serif;
-    background: linear-gradient(135deg, #f8f6f1 0%, #ebe8df 100%);
-    padding: 2rem;
+* {
     margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
+/* Style global page */
+body {
+    background-color: #a7a9a2;
+    color: rgb(34, 34, 34);
+    font-family: system-ui, sans-serif;
+}
+
+
+/* ---------- HEADER ---------- */
 .header {
-    position:fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    padding: 1.5vw 0;
-    width: 100%;
-    box-sizing: border-box;
     background: white;
-    box-shadow: var(--shadow-subtle);
+    padding: 12px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border: 1px solid var(--border-color);
-    transition: box-shadow 0.3s ease;
+    gap: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.header:hover {
-    box-shadow: var(--shadow-hover);
-}
-
-.header__brand{
-    padding: 0 1vw;
+/* logo + titre */
+.header__brand {
     display: flex;
     align-items: center;
-    width: 25%;
-    gap: 1rem;
-}
-
-.header__icon{
-    border-radius: 5px;
-    height: 75px;
-    width: 75px;
+    gap: 12px;
 }
 
 .header__title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0;
-    white-space: nowrap; /* ✅ Empêche le texte de passer à la ligne */
+    font-size: 1.4rem;
+}
+
+.header__search-container{
+    
+}
+
+/* groupe de boutons */
+.header__buttons {
+    display: flex;
+    gap: 10px;
 }
 
 
-.search-container {
-    width: 50%;
-    position: relative; 
-    margin-right: 2vw;
+/* ---------- TABLEAU ---------- */
+#tableauOeuvres {
+    padding: 20px;
 }
 
-.search-icon {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 20px; 
-    height: 20px;
-    stroke: var(--text-secondary);
-    pointer-events: none;
-    transition: stroke 0.3s ease;
-}
-
-.search-input {
+/* tableau pleine largeur */
+table {
     width: 100%;
-    padding: 0.875rem 1rem 0.875rem 3rem; 
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
-    font-size: 0.95rem;
-    font-family: 'Work Sans', sans-serif;
-    transition: all 0.3s ease;
-    background: var(--primary-light);
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: var(--accent-gold);
+    border-collapse: collapse;
     background: white;
-    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
 }
 
-.search-input::placeholder {
-    color: var(--text-secondary);
+/* cellules */
+th, td {
+    padding: 12px;
+    text-align: left;
 }
 
-.search-container:focus-within .search-icon {
-    stroke: var(--accent-gold);
+/* ligne d'en-tête */
+thead {
+    background: #ececec;
 }
 
-.header__buttons{
-    padding: 0 1vw;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    column-gap: 0.75vw;
-    width: 25%;
+/* lignes alternées */
+tbody tr:nth-child(even) {
+    background: #f7f7f7;
 }
 
-.btn-icon {
-    padding: 0.5rem;
-    width: 2.5vw; 
-    height: 2.5vw; 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    border-color: var(--border-color);
-    transition: transform 0.2s ease;
-}
-
-.btn-icon svg {
-    width: 100%;
-    height: 100%;
-}
-
-.btn-icon:hover{
-    transform: scale(1.05) translateY(-2px);
-}
-
-.btn-add {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3vw;
-    color: var(--text-primary);
-    border-radius: 10px;
-    border-color: var(--border-color);
-    transition: transform 0.2s ease;
-}
-
-.btn-add svg{
-    width: 2.2vw;  
-    height: 2.2vw;
-}
-
-.btn-add:hover{
-    transform: scale(1.05) translateY(-2px);
+/* effet hover */
+tbody tr:hover {
+    background: #e6e6e6;
 }
