@@ -1,6 +1,3 @@
-test toutes les requetes juste pour être sur!!!!!
-
-
 Ce que tu peux mettre dans les paramètres (engrenage)
 
 Choix du thème (clair/sombre)
