@@ -19,7 +19,7 @@
             <svg class="header__search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
-            <input type="text" class="search-input" placeholder="Rechercher">
+            <input type="text" class="header__search-input" placeholder="Rechercher">
         </div>
         
         <div class="header__buttons">
@@ -36,13 +36,33 @@
             </button>
             
             <button class="btn btn-add">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="btn-add-icon">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
                 Ajouter une œuvre
             </button>
         </div>
     </header>
+
+    <div id="fenetreAjouterOeuvre">
+        <form action="http://localhost:3000/oeuvres" method="post">
+            <label for="formTitre">Titre :</label>
+            <input type="text" id="formTitre">
+
+            <label for="formType">Type : </label>
+            <select name="formType" id="formType-select">
+                <option value="Film">Film</option>
+                <option value="Serie">Série</option>
+                <option value="Jeu">Jeu</option>
+                <option value="Manga"></option>
+                <option value="Manhwa">Manhwa</option>
+                <option value="Webcomic">Webcomic</option>
+                <option value="Video">Vidéo</option>
+                <option value="Autre">Autre</option>
+            </select>
+        </form>
+    </div>
+
     <div id="tableauOeuvres">
         <table>
             <thead>
@@ -56,14 +76,6 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <th scope="row">LoL</th>
-                    <td>Jeu</td>
-                    <td>En cours</td>
-                    <td>9.5</td>
-                    <td>Infini</td>
-                    <td>rien</td>
-                </tr>
             </tbody>
         </table>
     </div>
