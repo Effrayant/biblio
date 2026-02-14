@@ -45,21 +45,43 @@
     </header>
 
     <div id="fenetreAjouterOeuvre">
-        <form action="http://localhost:3000/oeuvres" method="post">
-            <label for="formTitre">Titre :</label>
-            <input type="text" id="formTitre">
+        <form action="http://localhost:3000/oeuvres" method="post" id="formAjouterOeuvre" name="formAjouterOeuvre">
+            <label for="titre">Titre :</label>
+            <input type="text" id="titre" name="titre" required>
 
-            <label for="formType">Type : </label>
-            <select name="formType" id="formType-select">
+            <label for="type">Type : </label>
+            <select id="type" name="type" required>
+                <option value="" disabled selected hidden>...</option>
                 <option value="Film">Film</option>
                 <option value="Serie">Série</option>
                 <option value="Jeu">Jeu</option>
-                <option value="Manga"></option>
+                <option value="Manga">Manga</option>
                 <option value="Manhwa">Manhwa</option>
                 <option value="Webcomic">Webcomic</option>
                 <option value="Video">Vidéo</option>
                 <option value="Autre">Autre</option>
             </select>
+
+            <label for="statut">Statut : </label>
+            <select id="statut" name="statut" required>
+                <option value="" disabled selected hidden>...</option>
+                <option value="Termine">Terminé</option>
+                <option value="En cours">En cours</option>
+                <option value="Abandonne">Abandonné</option>
+                <option value="A faire/voir">À faire/voir</option>
+                <option value="Sortie prochaine">Sortie Prochaine</option>
+            </select>
+
+            <label for="note">Note : </label>
+            <input type="text" id="note" name="note" placeholder="la note sera mise sur 10" required>
+
+            <label for="progression">Progression :</label>
+            <input type="text" id="progression" name="progression">
+
+            <label for="commentaire">Commentaire :</label>
+            <input type="text" id="commentaire" name="commentaire">   
+            
+            <button type="button" id="btnAjouterOeuvrePopup">Ajouter l'œuvre</button>
         </form>
     </div>
 

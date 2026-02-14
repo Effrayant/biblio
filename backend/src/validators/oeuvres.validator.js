@@ -1,6 +1,6 @@
-const TYPES_AUTORISES = ["Film", "Serie", "Jeu", "Manga", "Manhwa", "Webcomic", "Video"];
+const TYPES_AUTORISES = ["Film", "Serie", "Jeu", "Manga", "Manhwa", "Webcomic", "Video", "Autre"];
 
-const STATUTS_AUTORISES = ["A consommer", "En cours", "Terminé", "Abandonné", "Sortie prochaine"];
+const STATUTS_AUTORISES = ["A faire/voir", "En cours", "Termine", "Abandonne", "Sortie prochaine"];
 
 // Fonction de vérification pour les nouvelles oeuvres
 function validationOeuvrePost(body) {
