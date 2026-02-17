@@ -35,7 +35,7 @@
                 </svg>
             </button>
             
-            <button class="btn btn-add">
+            <button class="btn btn-add" id="btn-add">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="btn-add-icon">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
@@ -43,47 +43,6 @@
             </button>
         </div>
     </header>
-
-    <div id="fenetreAjouterOeuvre">
-        <form action="http://localhost:3000/oeuvres" method="post" id="formAjouterOeuvre" name="formAjouterOeuvre">
-            <label for="titre">Titre :</label>
-            <input type="text" id="titre" name="titre" required>
-
-            <label for="type">Type : </label>
-            <select id="type" name="type" required>
-                <option value="" disabled selected hidden>...</option>
-                <option value="Film">Film</option>
-                <option value="Serie">Série</option>
-                <option value="Jeu">Jeu</option>
-                <option value="Manga">Manga</option>
-                <option value="Manhwa">Manhwa</option>
-                <option value="Webcomic">Webcomic</option>
-                <option value="Video">Vidéo</option>
-                <option value="Autre">Autre</option>
-            </select>
-
-            <label for="statut">Statut : </label>
-            <select id="statut" name="statut" required>
-                <option value="" disabled selected hidden>...</option>
-                <option value="Termine">Terminé</option>
-                <option value="En cours">En cours</option>
-                <option value="Abandonne">Abandonné</option>
-                <option value="A faire/voir">À faire/voir</option>
-                <option value="Sortie prochaine">Sortie Prochaine</option>
-            </select>
-
-            <label for="note">Note : </label>
-            <input type="text" id="note" name="note" placeholder="la note sera mise sur 10" required>
-
-            <label for="progression">Progression :</label>
-            <input type="text" id="progression" name="progression">
-
-            <label for="commentaire">Commentaire :</label>
-            <input type="text" id="commentaire" name="commentaire">   
-            
-            <button type="button" id="btnAjouterOeuvrePopup">Ajouter l'œuvre</button>
-        </form>
-    </div>
 
     <div id="tableauOeuvres">
         <table>
@@ -101,5 +60,58 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Popup d'ajout -->
+    <dialog id="popupAdd">
+        <div class="modal-wrapper"> <!-- div pour le style a l'intérieur du popup -->
+            <form id="formAjouterOeuvre">
+                <div class="modal-header">
+                    <h2>Ajouter une œuvre</h2>
+                    <button type="button" id="btn-fermer-popup" aria-label="Fermer">x</button>
+                </div>
+                <div class="form-body">
+                    <label for="titre">Titre :</label>
+                    <input type="text" id="titre" name="titre" required>
+
+                    <label for="type">Type :</label>
+                    <select id="type" name="type" required>
+                        <option value="" disabled selected hidden>...</option>
+                        <option value="Film">Film</option>
+                        <option value="Serie">Série</option>
+                        <option value="Jeu">Jeu</option>
+                        <option value="Manga">Manga</option>
+                        <option value="Manhwa">Manhwa</option>
+                        <option value="Webcomic">Webcomic</option>
+                        <option value="Video">Vidéo</option>
+                        <option value="Autre">Autre</option>
+                    </select>
+
+                    <label for="statut">Statut :</label>
+                    <select id="statut" name="statut" required>
+                        <option value="" disabled selected hidden>...</option>
+                        <option value="Termine">Terminé</option>
+                        <option value="En cours">En cours</option>
+                        <option value="Abandonne">Abandonné</option>
+                        <option value="A faire/voir">À faire/voir</option>
+                        <option value="Sortie prochaine">Sortie Prochaine</option>
+                    </select>
+
+                    <label for="note">Note :</label>
+                    <input type="text" id="note" name="note" placeholder="Note sur 10" required>
+
+                    <label for="progression">Progression :</label>
+                    <input type="text" id="progression" name="progression">
+
+                    <label for="commentaire">Commentaire :</label>
+                    <textarea id="commentaire" name="commentaire" rows="2"></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" id="btnAnnulerAjout">Annuler</button>
+                    <button type="submit" id="btnAjouterOeuvrePopup">Ajouter</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
 </body>
 </html>
