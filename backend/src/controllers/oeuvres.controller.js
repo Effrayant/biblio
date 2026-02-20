@@ -104,7 +104,7 @@ exports.replace = async (req, res) => {
   }
 };
 
-// Route PATCH (remplacement partiel et pas de champ majeurs (titre / type)) //
+// Route PATCH (remplacement partiel) //
 exports.patch = async (req, res) => {
   const id = req.id;
 

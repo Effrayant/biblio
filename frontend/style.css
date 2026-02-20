@@ -134,12 +134,26 @@ table {
     width: 100%;
     border-collapse: collapse;
     background: white;
+    table-layout: fixed;
 }
+
+#tableauOeuvres th:nth-child(1) { width: 30%; } /* Titre */
+#tableauOeuvres th:nth-child(2) { width: 6%; } /* Type */
+#tableauOeuvres th:nth-child(3) { width: 9%; } /* Statut */
+#tableauOeuvres th:nth-child(4) { width: 8%;  } /* Note */
+#tableauOeuvres th:nth-child(5) { width: 8%; } /* Progression */
+#tableauOeuvres th:nth-child(6) { width: 39%; } /* Options */
 
 /* cellules */
 th, td {
     padding: 12px;
     text-align: left;
+}
+
+td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* ligne d'en-tête */
