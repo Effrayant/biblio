@@ -2,16 +2,16 @@ window.onload = chargerOeuvres; //Charge le tableau au chargement de la page
 
 //-------- Variables globales ---------//
 // Barre de recherche dans le header
-const barreDeRecherche = document.querySelector(".header__search-input")
+const barreDeRecherche = document.getElementById("headerSearchInput")
 
 //body du tableau d'oeuvre
-const tbody = document.querySelector("#tableauOeuvres tbody");
+const tbody = document.getElementById("tableBody");
 
 // Formulaire d'ajout d'œuvre
-const formAjout = document.querySelector("#formAjouterOeuvre");
+const formAjout = document.getElementById("formAddWork");
 
 // Popup qui contient le formulaire d'ajout d'oeuvre
-const popupAjout = document.querySelector("#popupAdd");
+const popupAjout = document.getElementById("addWorkModal");
 
 // Champ de note dans le formulaire d'ajout d'œuvre
 const noteInput = document.getElementById("note");
@@ -31,6 +31,8 @@ const optionsStatut = [
   "Sortie prochaine"
 ];
 
+let total = document.getElementById("total");
+let displayed = document.getElementById("displayed")
 
 // -------- Fonctions principales ---------//
 
@@ -38,11 +40,10 @@ async function chargerOeuvres() {
   try {
     // Appel de l'API pour récupérer la liste des œuvres
     const res = await fetch("http://localhost:3000/oeuvres");
-    
-    // Conversion de la réponse en JSON
     const oeuvres = await res.json();
 
     tbody.innerHTML = "";
+    total.textContent = oeuvres.length;
 
     // Création d'une ligne de tableau par œuvre
     oeuvres.forEach(o => {
@@ -64,6 +65,7 @@ async function chargerOeuvres() {
 
         tbody.appendChild(tr);
     });
+    displayed.textContent = tbody.querySelectorAll("tr").length;
   } catch (e) {
     console.error("Erreur API:", e);
   }
@@ -100,6 +102,8 @@ async function supprimerOeuvre(id){
   // Supprime uniquement la ligne concernée
   const ligne = document.querySelector(`tr[data-id="${id}"]`);
   if (ligne) ligne.remove();
+
+  majCompteurs();
 }
 
 // -------- Fonctions d'interface ---------//
@@ -111,7 +115,7 @@ function rechercheOeuvre() {
   const recherche = barreDeRecherche.value.toLowerCase();
 
   // Sélectionne les lignes du tableau
-  const lignes = document.querySelectorAll("#tableauOeuvres tbody tr");
+  const lignes = document.querySelectorAll("#tableBody tr");
 
   lignes.forEach(ligne => {
     // Fait disparaître les lignes qui ne contiennent pas le texte ni dans leur titre ni dans leur type
@@ -124,6 +128,26 @@ function rechercheOeuvre() {
       ligne.style.display = "";
     }
   });
+  majCompteurs();
+}
+
+function majCompteurs() {
+  const lignes = document.querySelectorAll('#tableBody tr');
+  const visibles = document.querySelectorAll('#tableBody tr:not([style*="display: none"])');
+
+  total.textContent = lignes.length;
+  displayed.textContent = visibles.length;
+}
+
+function sortTableTitre() {
+  let tableTitre = [];
+  const lignes = document.querySelectorAll("#tableBody tr");
+  lignes.forEach(ligne => {
+    tableTitre.push(ligne.cells[0].textContent.toLowerCase());
+  });
+  console.log(tableTitre);
+  tableTitre.sort;
+  console.log(tableTitre);
 }
 
 // -------- Gestion des événements ---------//
@@ -131,11 +155,24 @@ function rechercheOeuvre() {
 //Déclenche la fonction de recheche a chaque modification dans la barre de recherche
 barreDeRecherche.addEventListener("input", rechercheOeuvre);
 
-document.querySelector("#btn-add").addEventListener("click", () => {
+document.getElementById("colTitre").addEventListener("click", sortTableTitre);
+
+const settingsPopover = document.getElementById('testPopover');
+document.querySelector("#btnSettings").addEventListener("click", () => {
+  const rect = btnSettings.getBoundingClientRect();
+  settingsPopover.style.top = `${rect.bottom + window.scrollY + 8}px`;
+  settingsPopover.style.left = `${rect.left + window.scrollX}px`;
+});
+
+document.querySelector("#btnAddHeader").addEventListener("click", () => {
     popupAjout.showModal();
 });
 
-document.querySelector("#btn-fermer-popup").addEventListener("click", () => {
+document.querySelector("#btnCloseAddModal").addEventListener("click", () => {
+    popupAjout.close();
+});
+
+document.querySelector("#btnCancelAddWork").addEventListener("click", () => {
     popupAjout.close();
 });
 
@@ -336,3 +373,38 @@ async function modificationCelleluleText(td) {
     }
   });
 }
+
+// DARK MODE / LIGHT MODE // 
+const btn = document.getElementById("btnSettings");
+const panel = document.getElementById("settingsPanel");
+const toggleDark = document.getElementById("toggleDark");
+const themeIcon = document.getElementById("themeIcon");
+const html = document.documentElement;
+
+// Ouvrir / fermer
+btn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const isOpen = panel.classList.toggle("open");
+  btn.classList.toggle("active", isOpen);
+});
+
+// Fermer en cliquant dehors
+document.addEventListener("click", (e) => {
+  if (!panel.contains(e.target) && e.target !== btn) {
+    panel.classList.remove("open");
+    btn.classList.remove("active");
+  }
+});
+
+// Dark / Light mode
+toggleDark.addEventListener("change", () => {
+  if (toggleDark.checked) {
+    html.setAttribute("data-theme", "dark");
+    themeIcon.textContent = "🌙";
+    document.querySelector(".item-desc").textContent = "Mode sombre activé";
+  } else {
+    html.setAttribute("data-theme", "light");
+    themeIcon.textContent = "☀️";
+    document.querySelector(".item-desc").textContent = "Mode clair activé";
+  }
+});

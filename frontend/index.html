@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,28 +23,65 @@
             <svg class="header__search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
-            <input type="text" class="header__search-input" placeholder="Rechercher">
+            <input type="text" class="header__search-input" id="headerSearchInput" placeholder="Rechercher">
         </div>
         
         <!-- Boutons d'action -->
         <div class="header__buttons">
             <!-- Tri avancé -->
-            <button class="btn btn-icon" title="Tri Avancé">
+            <button class="btn btn--header" title="Tri Avancé" id="btnFilters">
                 <svg viewBox="0 0 24 24" fill="var(--text-primary)">
                     <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
                 </svg>
             </button>
             
             <!-- Paramètres -->
-            <button class="btn btn-icon" title="Paramètres">
-                <svg viewBox="0 0 512 512" fill="var(--text-primary)" stroke="currentColor">
-                    <path d="M262.29,192.31a64,64,0,1,0,57.4,57.4A64.13,64.13,0,0,0,262.29,192.31ZM416.39,256a154.34,154.34,0,0,1-1.53,20.79l45.21,35.46A10.81,10.81,0,0,1,462.52,326l-42.77,74a10.81,10.81,0,0,1-13.14,4.59l-44.9-18.08a16.11,16.11,0,0,0-15.17,1.75A164.48,164.48,0,0,1,325,400.8a15.94,15.94,0,0,0-8.82,12.14l-6.73,47.89A11.08,11.08,0,0,1,298.77,470H213.23a11.11,11.11,0,0,1-10.69-8.87l-6.72-47.82a16.07,16.07,0,0,0-9-12.22,155.3,155.3,0,0,1-21.46-12.57,16,16,0,0,0-15.11-1.71l-44.89,18.07a10.81,10.81,0,0,1-13.14-4.58l-42.77-74a10.8,10.8,0,0,1,2.45-13.75l38.21-30a16.05,16.05,0,0,0,6-14.08c-.36-4.17-.58-8.33-.58-12.5s.21-8.27.58-12.35a16,16,0,0,0-6.07-13.94l-38.19-30A10.81,10.81,0,0,1,49.48,186l42.77-74a10.81,10.81,0,0,1,13.14-4.59l44.9,18.08a16.11,16.11,0,0,0,15.17-1.75A164.48,164.48,0,0,1,187,111.2a15.94,15.94,0,0,0,8.82-12.14l6.73-47.89A11.08,11.08,0,0,1,213.23,42h85.54a11.11,11.11,0,0,1,10.69,8.87l6.72,47.82a16.07,16.07,0,0,0,9,12.22,155.3,155.3,0,0,1,21.46,12.57,16,16,0,0,0,15.11,1.71l44.89-18.07a10.81,10.81,0,0,1,13.14,4.58l42.77,74a10.8,10.8,0,0,1-2.45,13.75l-38.21,30a16.05,16.05,0,0,0-6.05,14.08C416.17,247.67,416.39,251.83,416.39,256Z" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/>
-                </svg>
-            </button>
+             <div class="settings-dropdown-wrapper">
+                <button class="btn btn--header" title="Paramètres" id="btnSettings">
+                    <svg viewBox="0 0 512 512" fill="var(--text-primary)" stroke="currentColor">
+                        <path d="M262.29,192.31a64,64,0,1,0,57.4,57.4A64.13,64.13,0,0,0,262.29,192.31ZM416.39,256a154.34,154.34,0,0,1-1.53,20.79l45.21,35.46A10.81,10.81,0,0,1,462.52,326l-42.77,74a10.81,10.81,0,0,1-13.14,4.59l-44.9-18.08a16.11,16.11,0,0,0-15.17,1.75A164.48,164.48,0,0,1,325,400.8a15.94,15.94,0,0,0-8.82,12.14l-6.73,47.89A11.08,11.08,0,0,1,298.77,470H213.23a11.11,11.11,0,0,1-10.69-8.87l-6.72-47.82a16.07,16.07,0,0,0-9-12.22,155.3,155.3,0,0,1-21.46-12.57,16,16,0,0,0-15.11-1.71l-44.89,18.07a10.81,10.81,0,0,1-13.14-4.58l-42.77-74a10.8,10.8,0,0,1,2.45-13.75l38.21-30a16.05,16.05,0,0,0,6-14.08c-.36-4.17-.58-8.33-.58-12.5s.21-8.27.58-12.35a16,16,0,0,0-6.07-13.94l-38.19-30A10.81,10.81,0,0,1,49.48,186l42.77-74a10.81,10.81,0,0,1,13.14-4.59l44.9,18.08a16.11,16.11,0,0,0,15.17-1.75A164.48,164.48,0,0,1,187,111.2a15.94,15.94,0,0,0,8.82-12.14l6.73-47.89A11.08,11.08,0,0,1,213.23,42h85.54a11.11,11.11,0,0,1,10.69,8.87l6.72,47.82a16.07,16.07,0,0,0,9,12.22,155.3,155.3,0,0,1,21.46,12.57,16,16,0,0,0,15.11,1.71l44.89-18.07a10.81,10.81,0,0,1,13.14,4.58l42.77,74a10.8,10.8,0,0,1-2.45,13.75l-38.21,30a16.05,16.05,0,0,0-6.05,14.08C416.17,247.67,416.39,251.83,416.39,256Z" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/>
+                    </svg>
+                </button>
+                <div class="settings-panel" id="settingsPanel">
+                    <div class="panel-header"> <h3>Paramètres</h3> </div>
+
+                    <div class="panel-section">
+                        <div class="section-label">Apparence</div>
+                        <label class="setting-item">
+                            <div class="item-left">
+                                <div class="item-icon" id="themeIcon">🌙</div>
+                                <div class="item-info">
+                                    <div class="item-label">Thème visuel</div>
+                                    <div class="item-desc">Mode sombre activé</div>
+                                </div>
+                            </div>
+                            <div class="toggle">
+                                <input type="checkbox" id="toggleDark" checked>
+                                <span class="toggle-track"></span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Données -->
+                    <div class="panel-section">
+                        <div class="section-label">Données</div>
+                        <div class="setting-item">
+                            <button class="btn-import">Importer une liste</button>
+                        </div>
+                        <div class="setting-item">
+                            <button class="btn-export">Exporter votre liste</button>
+                        </div>
+                        <div class="setting-item">
+                            <button class="btn-danger">🗑️ Réinitialiser toutes les œuvres</button>
+                        </div>
+                    </div>
+                </div>
+             </div>
+
             
             <!-- Ajouter une œuvre -->
-            <button class="btn btn-add" id="btn-add">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="btn-add-icon">
+            <button class="btn btn--add-header" title="Ajouter une Oeuvre" id="btnAddHeader">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="btn__icon">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
                 Ajouter une œuvre
@@ -57,81 +94,87 @@
         <table>
             <thead>
                 <tr>
-                    <th scope="col">Titre</th>
-                    <th scope="col">Type</th>
-                    <th scope="col">Statut</th>
-                    <th scope="col">Note</th>
-                    <th scope="col">Progression</th>
-                    <th scope="col">Options</th>
+                    <th scope="col" id="colTitre">Titre</th>
+                    <th scope="col" id="colType">Type</th>
+                    <th scope="col" id="colStatut">Statut</th>
+                    <th scope="col" id="colNote">Note</th>
+                    <th scope="col" id="colProgression">Progression</th>
+                    <th scope="col" id="colOptions">Options</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="tableBody">
                 <!-- Lignes générées dynamiquement via JS -->
             </tbody>
         </table>
     </div>
 
     <!-- ===== POPUP AJOUT ŒUVRE ===== -->
-    <dialog id="popupAdd">
-        <div class="modal-wrapper"> 
-            <form id="formAjouterOeuvre">
+    <dialog id="addWorkModal" class="modal modal--add">
+        <form id="formAddWork" method="dialog">
+        
+            <!-- Header -->
+            <div class="modal__header">
+                <h2>Ajouter une œuvre</h2>
+                <button type="button" class="btn modal__close" id="btnCloseAddModal" aria-label="Fermer">×</button>
+            </div>
 
-                <!-- Header du popup -->
-                <div class="modal-header">
-                    <h2>Ajouter une œuvre</h2>
-                    <button type="button" id="btn-fermer-popup" aria-label="Fermer">x</button>
-                </div>
-                
-                <!-- Corps du formulaire -->
-                <div class="form-body">
-                    <!-- Titre -->
-                    <label for="titre">Titre :</label>
-                    <input type="text" id="titre" name="titre" required>
+            <!-- Corps -->
+            <div class="modal__body">
 
-                    <!-- Type -->
-                    <label for="type">Type :</label>
-                    <select id="type" name="type" required>
-                        <option value="" disabled selected hidden>...</option>
-                        <option value="Film">Film</option>
-                        <option value="Serie">Série</option>
-                        <option value="Jeu">Jeu</option>
-                        <option value="Manga">Manga</option>
-                        <option value="Manhwa">Manhwa</option>
-                        <option value="Webcomic">Webcomic</option>
-                        <option value="Video">Vidéo</option>
-                        <option value="Autre">Autre</option>
-                    </select>
+                <label for="titre">Titre :</label>
+                <input type="text" id="titre" name="titre" required>
 
-                    <!-- Statut -->
-                    <label for="statut">Statut :</label>
-                    <select id="statut" name="statut" required>
-                        <option value="" disabled selected hidden>...</option>
-                        <option value="Termine">Terminé</option>
-                        <option value="En cours">En cours</option>
-                        <option value="Abandonne">Abandonné</option>
-                        <option value="A faire/voir">À faire/voir</option>
-                        <option value="Sortie prochaine">Sortie Prochaine</option>
-                    </select>
+                <label for="type">Type :</label>
+                <select id="type" name="type" required>
+                    <option value="" disabled selected hidden>Choisir...</option>
+                    <option value="Film">Film</option>
+                    <option value="Serie">Série</option>
+                    <option value="Jeu">Jeu</option>
+                    <option value="Manga">Manga</option>
+                    <option value="Manhwa">Manhwa</option>
+                    <option value="Webcomic">Webcomic</option>
+                    <option value="Video">Vidéo</option>
+                    <option value="Autre">Autre</option>
+                </select>
 
-                    <!-- Note -->
-                    <label for="note">Note :</label>
-                    <input type="text" id="note" name="note" placeholder="Note sur 10" required>
+                <label for="statut">Statut :</label>
+                <select id="statut" name="statut" required>
+                    <option value="" disabled selected hidden>Choisir...</option>
+                    <option value="Termine">Terminé</option>
+                    <option value="En cours">En cours</option>
+                    <option value="Abandonne">Abandonné</option>
+                    <option value="A faire/voir">À faire/voir</option>
+                    <option value="Sortie prochaine">Sortie prochaine</option>
+                </select>
 
-                    <!-- Progression -->>
-                    <label for="progression">Progression :</label>
-                    <input type="text" id="progression" name="progression">
-                    <!-- Commentaire -->
-                    <label for="commentaire">Commentaire :</label>
-                    <textarea id="commentaire" name="commentaire" rows="2"></textarea>
-                </div>
+                <label for="note">Note :</label>
+                <input type="number" id="note" name="note">
 
-                <!-- Footer du popup -->
-                <div class="modal-footer">
-                    <button type="button" id="btnAnnulerAjout">Annuler</button>
-                    <button type="submit" id="btnAjouterOeuvrePopup">Ajouter</button>
-                </div>
-            </form>
-        </div>
+                <label for="progression">Progression :</label>
+                <input type="text" id="progression" name="progression">
+
+                <label for="commentaire">Commentaire :</label>
+                <textarea id="commentaire" name="commentaire" rows="3"></textarea>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="modal__footer">
+                <button type="button" id="btnCancelAddWork">Annuler</button>
+                <button type="submit" id="btnSubmitAddWork">Ajouter</button>
+            </div>
+
+        </form>
     </dialog>
+
+    <footer class="footer">
+        <div class="footer-left">
+            <p>Nombre d'œuvres total : <span id="total">0</span></p>
+            <p>Nombre d'œuvres affichées : <span id="displayed">0</span></p>
+        </div>
+        <div class="footer-right">
+            v : 0.0.1
+        </div>
+    </footer>
 </body>
 </html>
