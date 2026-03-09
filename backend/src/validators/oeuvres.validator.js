@@ -1,8 +1,44 @@
 const TYPES_AUTORISES = ["Film", "Serie", "Jeu", "Manga", "Manhwa", "Webcomic", "Video", "Autre"];
 
 const STATUTS_AUTORISES = ["A faire/voir", "En cours", "Termine", "Abandonne", "Sortie prochaine"];
+const STATUTS_NOTE_OBLIGATOIRE = ["Termine", "Abandonne"];
 
 const CHAMPS_AUTORISES = ["titre", "type", "statut", "note", "progression", "commentaire"];
+
+// String non vide (après trim)
+function isNonEmptyString(v) {
+  return typeof v === "string" && v.trim().length > 0;
+}
+
+// null ou string (utile pour progression/commentaire)
+function isNullableString(v) {
+  return v === null || typeof v === "string";
+}
+
+// Note valide = nombre fini >= 0 (rejette NaN, Infinity)
+function isValidNoteValue(v) {
+  return typeof v === "number" && Number.isFinite(v) && v >= 0;
+}
+
+// Règle métier pour POST / PUT
+function validateNoteSelonStatut(statut, note) {
+  if (!STATUTS_AUTORISES.includes(statut)) return "Statut invalide";
+
+  // Note obligatoire pour certains statuts
+  if (STATUTS_NOTE_OBLIGATOIRE.includes(statut)) {
+    if (!isValidNoteValue(note)) {
+      return "Note obligatoire et invalide pour ce statut";
+    }
+    return null;
+  }
+
+  // Pour les autres statuts : note facultative
+  if (note !== null && !isValidNoteValue(note)) {
+    return "Note invalide";
+  }
+
+  return null;
+}
 
 // Fonction de vérification pour les nouvelles oeuvres
 function validationOeuvrePost(body) {
@@ -18,30 +54,25 @@ function validationOeuvrePost(body) {
     }
   }
 
-  // Titre obligatoire et non vide
-  if (typeof body.titre !== "string" || body.titre.trim().length === 0){
-    return "Titre invalide";
-  }
+  // Champs requis
+  if (!isNonEmptyString(body.titre)) return "Titre invalide";
+  if (!TYPES_AUTORISES.includes(body.type)) return "Type invalide";
+  if (!STATUTS_AUTORISES.includes(body.statut)) return "Statut invalide";
 
-  if (!TYPES_AUTORISES.includes(body.type)){
-    return "Type invalide";
-  }
+  // Note doit être fournie (même si null quand statut sans note)
+  if (!("note" in body)) return "Note manquante";
 
-  if (!STATUTS_AUTORISES.includes(body.statut)){
-    return "Statut invalide";
-  }
+  // Applique la règle entre note et statut
+  const errNote = validateNoteSelonStatut(body.statut, body.note);
+  if (errNote) return errNote;
 
-  if (typeof body.note !== "number" || body.note < 0){
-    return "Note invalide";
-  }
-
-  // Progression facultative mais doit être une string si présente
-  if ("progression" in body && body.progression !== null && typeof body.progression !== "string"){
+  // Progression facultative mais doit être une string si présente (ou null)
+  if ("progression" in body && !isNullableString(body.progression)) {
     return "Progression invalide";
   }
 
-  // Facultatif mais string si présent 
-  if ("commentaire" in body && body.commentaire !== null && typeof body.commentaire !== "string"){
+  // Commentaire facultatif mais doit être une string si présent (ou null)
+  if ("commentaire" in body && !isNullableString(body.commentaire)) {
     return "Commentaire invalide";
   }
     
@@ -54,7 +85,6 @@ function validationOeuvrePut(body) {
 }
 
 function validationOeuvrePatch(body) {
-
   if (Object.keys(body).length === 0){
     return "Corps de requête vide";
   }
@@ -64,36 +94,44 @@ function validationOeuvrePatch(body) {
       return "Champ non autorisé trouvé";
   }
 
-  if ("titre" in body && (typeof body.titre !== "string" || body.titre.trim() === "")) {
+  if ("titre" in body && !isNonEmptyString(body.titre)) {
     return "Titre invalide";
   }
-  
-  if ("type" in body && !TYPES_AUTORISES.includes(body.type)){
+
+  if ("type" in body && !TYPES_AUTORISES.includes(body.type)) {
     return "Type invalide";
   }
 
-  if ("statut" in body && !STATUTS_AUTORISES.includes(body.statut)){
+  if ("statut" in body && !STATUTS_AUTORISES.includes(body.statut)) {
     return "Statut invalide";
   }
 
-  if ("note" in body && (typeof body.note !== "number" || body.note < 0)){
-    return "Note invalide";
+  // En PATCH on accepte note: null OU une note valide
+  if ("note" in body) {
+    if (!(body.note === null || isValidNoteValue(body.note))) {
+      return "Note invalide";
+    }
   }
 
-  if ("progression" in body && body.progression !== null && typeof body.progression !== "string"){
+  if ("progression" in body && !isNullableString(body.progression)) {
     return "Progression invalide";
   }
 
-  if ("commentaire" in body && body.commentaire !== null && typeof body.commentaire !== "string"){
+  if ("commentaire" in body && !isNullableString(body.commentaire)) {
     return "Commentaire invalide";
   }
 
   return null;
 }
 
+function validationOeuvrePatchCoherence(oeuvreFinale) {
+  return validateNoteSelonStatut(oeuvreFinale.statut, oeuvreFinale.note);
+}
+
 // Exporte les fonctions pour les routes
 module.exports = {
   validationOeuvrePost,
   validationOeuvrePut,
-  validationOeuvrePatch
+  validationOeuvrePatch,
+  validationOeuvrePatchCoherence,
 };

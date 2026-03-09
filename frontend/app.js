@@ -13,6 +13,9 @@ const formAjout = document.getElementById("formAddWork");
 // Popup qui contient le formulaire d'ajout d'oeuvre
 const popupAjout = document.getElementById("addWorkModal");
 
+// Champ du statut dans le formulaire d'ajout d'oeuvre
+const statutSelect = document.getElementById('statut');
+
 // Champ de note dans le formulaire d'ajout d'œuvre
 const noteInput = document.getElementById("note");
 let ancienneValeur = "";
@@ -33,6 +36,13 @@ const optionsStatut = [
 
 let total = document.getElementById("total");
 let displayed = document.getElementById("displayed")
+
+// DARK MODE / LIGHT MODE // 
+const btnSettings = document.getElementById("btnSettings");
+const panelSettings = document.getElementById("settingsPanel");
+const toggleDark = document.getElementById("toggleDark");
+const themeIcon = document.getElementById("themeIcon");
+const html = document.documentElement;
 
 // -------- Fonctions principales ---------//
 
@@ -55,8 +65,9 @@ async function chargerOeuvres() {
             <td class="tdTitre">${o.titre}</td>
             <td class="tdType">${o.type}</td>
             <td class="tdStatut">${o.statut}</td>
-            <td class="tdNote">${o.note}</td>
+            <td class="tdNote">${o.note ?? '-'}</td>
             <td class="tdProgression">${o.progression || '-'}</td>
+            <td class="tdCommentaire">${o.commentaire || '-'}</td>
             <td><button class="btn-suppr" data-id="${o.id}">Supprimer</button></td>
         `;
 
@@ -75,16 +86,18 @@ async function chargerOeuvres() {
 async function ajouterOeuvre(){
   // Vérifie que tous les champs obligatoires sont remplis
   if (formAjout.checkValidity()) {
-    const noteClean = formAjout.note.value.replace(",", ".");
+    const noteValue = formAjout.note.value;
     
     const data = {
       titre: formAjout.titre.value,
       type: formAjout.type.value,
       statut: formAjout.statut.value,
-      note: Number(noteClean),
+      note: noteValue ? Number(noteValue.replace(",", ".")) : null,
       progression: formAjout.progression.value || null,
       commentaire: formAjout.commentaire.value || null
     };
+
+    if (data.statut === "A faire/voir" || data.statut === "Sortie prochaine") {data.note = null} 
 
     await fetch("http://localhost:3000/oeuvres", {
       method: "POST",
@@ -145,9 +158,7 @@ function sortTableTitre() {
   lignes.forEach(ligne => {
     tableTitre.push(ligne.cells[0].textContent.toLowerCase());
   });
-  console.log(tableTitre);
-  tableTitre.sort;
-  console.log(tableTitre);
+  tableTitre.sort();
 }
 
 // -------- Gestion des événements ---------//
@@ -156,13 +167,6 @@ function sortTableTitre() {
 barreDeRecherche.addEventListener("input", rechercheOeuvre);
 
 document.getElementById("colTitre").addEventListener("click", sortTableTitre);
-
-const settingsPopover = document.getElementById('testPopover');
-document.querySelector("#btnSettings").addEventListener("click", () => {
-  const rect = btnSettings.getBoundingClientRect();
-  settingsPopover.style.top = `${rect.bottom + window.scrollY + 8}px`;
-  settingsPopover.style.left = `${rect.left + window.scrollX}px`;
-});
 
 document.querySelector("#btnAddHeader").addEventListener("click", () => {
     popupAjout.showModal();
@@ -174,6 +178,10 @@ document.querySelector("#btnCloseAddModal").addEventListener("click", () => {
 
 document.querySelector("#btnCancelAddWork").addEventListener("click", () => {
     popupAjout.close();
+    formAjout.reset();     // Vide les champs
+
+    noteInput.disabled = false;    // Reset les charactéristiques de la note
+    noteInput.setAttribute('required', '');
 });
 
 formAjout.addEventListener("submit", async (e) => {
@@ -183,8 +191,26 @@ formAjout.addEventListener("submit", async (e) => {
     
     popupAjout.close();    // Ferme le popup
     formAjout.reset();     // Vide les champs
+
+    noteInput.disabled = false;    // Reset les charactéristiques de la note
+    noteInput.setAttribute('required', '');
+
     await chargerOeuvres(); // Rafraîchit le tableau sans recharger la page
 });
+
+// Vérification du statut pour bloquer ou non la note
+statutSelect.addEventListener('change', () => {
+  const statutsSansNote = ['A faire/voir', 'Sortie prochaine'];
+
+  if (statutsSansNote.includes(statutSelect.value)) {
+      noteInput.disabled = true;
+      noteInput.value = '';         // vide la note si déjà remplie
+      noteInput.removeAttribute('required');    
+  } else {
+      noteInput.disabled = false;
+      noteInput.setAttribute('required', '');
+  }
+})
 
 // Vérification et contrainte pour la note dans le formulaire d'ajout d'œuvre
 noteInput.addEventListener("input", (e) => {
@@ -198,7 +224,14 @@ noteInput.addEventListener("input", (e) => {
   }
 });
 
-// Ajout d'un evenement sur les cellules du tableau qui permet d'ouvrir des SELECT afin de modifier leur contenu
+// Nettoyage pour éviter les notes qui termine par un . ou une , 
+noteInput.addEventListener("blur", (e) => {
+  const cleaned = e.target.value.replace(/[.,]$/, "");
+  e.target.value = cleaned;
+  ancienneValeur = cleaned;
+});
+
+// Ajout d'un evenement sur les cellules du tableau qui permet d'ouvrir des SELECT ou des INPUT afin de modifier leur contenu
 tbody.addEventListener("click", (e) => {
   // Récupère la cellule la plus proche de l'élément cliqué
   // (utile si clique sur le texte ou un élément à l'intérieur)
@@ -216,17 +249,15 @@ tbody.addEventListener("click", (e) => {
   }
 
   // Pour la modification des champs qui n'utilisent pas de chois prédéfinis
-  if (td.classList.contains("tdTitre") || td.classList.contains("tdNote") || td.classList.contains("tdProgression")) {
+  if (td.classList.contains("tdTitre") || td.classList.contains("tdNote") || td.classList.contains("tdProgression") || td.classList.contains("tdCommentaire")) {
     modificationCelleluleText(td);
   }
 });
 
 
 function ouvrirSelectDansCellule(td, options) {
-  // interdit l'ouverture d'un select par dessus un autre
   if (td.querySelector("select")) return;
 
-  // récupere la valeur affiché dans la cellule
   const valeurInitiale = td.textContent.trim();
   const select = document.createElement("select");
 
@@ -235,20 +266,19 @@ function ouvrirSelectDansCellule(td, options) {
     const option = document.createElement("option");
     option.value = opt;
     option.textContent = opt;
-    // préselectionne l'option si elle correspond a la valeur actuelle de la cellule
     if (opt === valeurInitiale) option.selected = true;
     select.appendChild(option);
   });
 
-
   td.textContent = "";
   td.appendChild(select);
-  // focus sur le select quand il a était ouvert
   select.focus();
-
-  select.dataset.hasListerner = "true";
+  
+  let validated = false;
 
   const valider = async () => {
+    if (validated) return;
+    validated = true;    
     const nouvelleValeur = select.value.trim();
     td.textContent = nouvelleValeur;
 
@@ -261,18 +291,25 @@ function ouvrirSelectDansCellule(td, options) {
     if (td.classList.contains("tdType")) champ = "type";
     if (td.classList.contains("tdStatut")) champ = "statut";
 
-    if (!champ) return;
+    if (!champ) {
+      console.warn("Classe tdType ou tdStatut manquante sur la cellule");
+      td.textContent = valeurInitiale;
+      return;
+    }
 
-
-    await fetch(`http://localhost:3000/oeuvres/${id}`, {
+    const response = await fetch(`http://localhost:3000/oeuvres/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ [champ]: nouvelleValeur })
     });
+
+    if (!response.ok) {
+      td.textContent = valeurInitiale; // rollback si erreur API
+    }
   };
 
-  // appel d'api pour modification quand l'utilisateur click hors du select
   select.addEventListener("blur", valider);
+  select.addEventListener("change", valider);
 };
 
 async function modificationCelleluleText(td) {
@@ -287,27 +324,35 @@ async function modificationCelleluleText(td) {
   const input = document.createElement("input");
   input.type = "text";
   input.value = valeurInitiale === "-" ? "" : valeurInitiale;
-
-  // L’input prend toute la largeur de la cellule
   input.style.width = "100%";
   input.style.boxSizing = "border-box";
 
-  // Limitation du nombre de caractères selon la colonne
-  if (td.classList.contains("tdTitre")) input.maxLength = 55;
-  if (td.classList.contains("tdProgression")) input.maxLength = 30;
-  if (td.classList.contains("tdNote")) input.maxLength = 9; // ex: 10.00
-
-  // Remplace le contenu de la cellule par l’input
   td.textContent = "";
   td.appendChild(input);
-
-  // Focus automatique
   input.focus();
   input.select();
 
+  // Filtre la saisie en temps réel pour le champ note
+  if (td.classList.contains("tdNote")) {
+    input.addEventListener("input", () => {
+      let v = input.value.replace(/[^\d.,]/g, ""); // supprime les caractères interdits
+
+      // Sépare sur le premier . ou ,
+      const parts = v.split(/([.,])/);
+      if (parts.length >= 3) {
+        // parts[0] = entier, parts[1] = séparateur, parts[2+] = décimales + parasites
+        const decimales = parts.slice(2).join("").replace(/[.,]/g, "").slice(0, 2);
+        v = parts[0] + parts[1] + decimales;
+      }
+
+      input.value = v;
+    });
+  }
+
+  let cancelled = false;
   // Fonction de validation (appel API)
   const validerTexte = async () => {
-
+    if (cancelled) return;
     let nouvelleValeur = input.value.trim();
 
     // Si aucune modification → on restaure
@@ -325,8 +370,13 @@ async function modificationCelleluleText(td) {
     if (td.classList.contains("tdTitre")) champ = "titre";
     if (td.classList.contains("tdNote")) champ = "note";
     if (td.classList.contains("tdProgression")) champ = "progression";
+    if (td.classList.contains("tdCommentaire")) champ = "commentaire";
 
-    if (!champ) return;
+    if (!champ) {
+      console.warn("Classe manquante sur la cellule");
+      td.textContent = valeurInitiale;
+      return;
+    }
 
     // Validation spécifique pour la note
     if (champ === "note") {
@@ -348,12 +398,10 @@ async function modificationCelleluleText(td) {
       if (!res.ok) throw new Error();
 
       // Mise à jour visuelle si succès
-      td.textContent = nouvelleValeur || "-";
+      td.textContent = nouvelleValeur === "" ? "-" : nouvelleValeur;
 
     } catch (error) {
       console.error("Erreur API:", error);
-
-      // Restaure l’ancienne valeur en cas d’erreur
       td.textContent = valeurInitiale;
     }
   };
@@ -369,30 +417,24 @@ async function modificationCelleluleText(td) {
 
     // Échap → annulation
     if (e.key === "Escape") {
+      cancelled = true;
       td.textContent = valeurInitiale;
     }
   });
 }
 
-// DARK MODE / LIGHT MODE // 
-const btn = document.getElementById("btnSettings");
-const panel = document.getElementById("settingsPanel");
-const toggleDark = document.getElementById("toggleDark");
-const themeIcon = document.getElementById("themeIcon");
-const html = document.documentElement;
-
 // Ouvrir / fermer
-btn.addEventListener("click", (e) => {
+btnSettings.addEventListener("click", (e) => {
   e.stopPropagation();
-  const isOpen = panel.classList.toggle("open");
-  btn.classList.toggle("active", isOpen);
+  const isOpen = panelSettings.classList.toggle("open");
+  btnSettings.classList.toggle("active", isOpen);
 });
 
 // Fermer en cliquant dehors
 document.addEventListener("click", (e) => {
-  if (!panel.contains(e.target) && e.target !== btn) {
-    panel.classList.remove("open");
-    btn.classList.remove("active");
+  if (!panelSettings.contains(e.target) && e.target !== btnSettings) {
+    panelSettings.classList.remove("open");
+    btnSettings.classList.remove("active");
   }
 });
 

@@ -6,6 +6,7 @@ const cors = require("cors");       // Pour les requêtes externes (le frontend 
 const oeuvresRoutes = require("./routes/oeuvres.routes"); // Importe les routes liés au serveur (GET POST PATCH PUT et DELETE)
 
 const app = express(); // l'application en elle même
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json()); // permet au serveur de lire le JSON envoyé par le client
@@ -17,4 +18,10 @@ app.get("/health", (_, res) => {
   res.json({ status: "ok" });
 });
 
-app.listen(process.env.PORT || 3000); // Lancement du serveur
+app.use((req, res) => {
+  res.status(404).json({ message: "Route introuvable" });
+});
+
+app.listen(PORT, () => {
+  console.log(`Serveur lancé sur le port ${PORT}`);
+});

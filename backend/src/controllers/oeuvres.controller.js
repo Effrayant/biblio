@@ -1,4 +1,5 @@
-const pool = require("../db"); // Import de la co avec la bd PostGre
+const pool = require("../db"); // Import de la connexion à la base PostgreSQL
+const validator = require("../validators/oeuvres.validator");
 
 // Remplace les chaînes vide par null (plus pratique pour la base)
 function clean(v) {
@@ -20,25 +21,39 @@ exports.getAll = async (req, res) => {
 exports.getOne = async (req, res) => {
   const id = req.id;
 
-  const result = await pool.query(
-    "SELECT * FROM oeuvres WHERE id = $1",
-    [id]
-  );
+  try {
+    const result = await pool.query(
+      "SELECT * FROM oeuvres WHERE id = $1",
+      [id]
+    );
 
-  if (!result.rows.length)
-    return res.status(404).json({ error: "Oeuvre non trouvée" });
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Oeuvre non trouvée" });
+    }
 
-  res.json(result.rows[0]);
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur DB" });
+  }
 };
 
 // Route POST //
 exports.create = async (req, res) => {
   try {
-    let { titre, type, statut, note, progression, commentaire } =
-      req.body;
+    let { titre, type, statut, note, progression, commentaire } = req.body;
 
+    titre = clean(titre);
+    type = clean(type);
+    statut = clean(statut);
     progression = clean(progression);
     commentaire = clean(commentaire);
+
+    if (titre === null || type === null || statut === null) {
+      return res.status(400).json({
+        error: "titre, type et statut ne peuvent pas être vides ou null",
+      });
+    }
 
     const result = await pool.query(
       `INSERT INTO oeuvres
@@ -80,11 +95,19 @@ exports.replace = async (req, res) => {
   const id = req.id;
 
   try {
-    let { titre, type, statut, note, progression, commentaire } =
-      req.body;
+    let { titre, type, statut, note, progression, commentaire } = req.body;
 
+    titre = clean(titre);
+    type = clean(type);
+    statut = clean(statut);
     progression = clean(progression);
     commentaire = clean(commentaire);
+
+    if (titre === null || type === null || statut === null) {
+      return res.status(400).json({
+        error: "titre, type et statut ne peuvent pas être vides ou null",
+      });
+    }
 
     const result = await pool.query(
       `UPDATE oeuvres
@@ -104,45 +127,57 @@ exports.replace = async (req, res) => {
   }
 };
 
-// Route PATCH (remplacement partiel) //
+// Route PATCH (modification partielle)
 exports.patch = async (req, res) => {
   const id = req.id;
 
   try {
-    if (req.body.progression?.trim() === "") {
-        req.body.progression = null;
-    }
-      
-    if (req.body.commentaire?.trim() === "") {
-        req.body.commentaire = null;
-    }
-      
-    // Transforme le body en tableau clé/valeur
-    const updates = Object.entries(req.body); 
+    const textFields = ["titre", "type", "statut", "progression", "commentaire"];
 
-    // Génère les champs SQL à modifier
-    const fields = updates.map(
-      ([key], i) => `${key} = $${i + 2}`
+    // Nettoyage des champs texte présents dans le body
+    for (const field of textFields) {
+      if (field in req.body) {
+        req.body[field] = clean(req.body[field]);
+      }
+    }
+
+    // Vérifie que le body n'est pas vide
+    const updates = Object.entries(req.body);
+    if (updates.length === 0) {
+      return res.status(400).json({ error: "Corps de requête vide" });
+    }
+
+    // Vérifie que l'oeuvre existe
+    const current = await pool.query(
+      "SELECT * FROM oeuvres WHERE id = $1",
+      [id]
     );
 
-    //Liste des nouvelles valeurs
-    const values = updates.map(
-      ([_, value]) => value
-    );
+    if (!current.rows.length) {
+      return res.status(404).json({ error: "Oeuvre non trouvée" });
+    }
+
+    const oeuvreFinale = {
+      ...current.rows[0],
+      ...Object.fromEntries(updates)  // fusionne l'état actuel + le patch
+    };
+
+    const errCoherence = validator.validationOeuvrePatchCoherence(oeuvreFinale);
+    if (errCoherence) return res.status(400).json({ error: errCoherence });
+
+    // UPDATE dynamique à partir des champs envoyés
+    const fields = updates.map(([key], i) => `${key} = $${i + 2}`);
+    const values = updates.map(([, value]) => value);
 
     const result = await pool.query(
       `UPDATE oeuvres
        SET ${fields.join(", ")}
-       WHERE id=$1
+       WHERE id = $1
        RETURNING *`,
       [id, ...values]
     );
 
-    if (!result.rows.length){
-        return res.status(404).json({ error: "Oeuvre non trouvée" });
-    }
-
-    res.json(result.rows[0]); 
+    res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Erreur DB" });
