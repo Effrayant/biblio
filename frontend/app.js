@@ -1,31 +1,53 @@
 window.onload = chargerOeuvres; //Charge le tableau au chargement de la page
 
+// -------- Constante API ---------//
+const API_URL = "http://localhost:3000/oeuvres";
+
+// -------- Thème ---------//
+function appliquerTheme(theme) {
+  html.setAttribute("data-theme", theme);
+
+  const modeSombre = theme === "dark";
+  toggleDark.checked = modeSombre;
+  themeIcon.textContent = modeSombre ? "🌙" : "☀️";
+
+  document.querySelector(".item-desc").textContent = modeSombre
+    ? "Mode sombre activé"
+    : "Mode clair activé";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const themeSauvegarde = localStorage.getItem("theme") || "light";
+  appliquerTheme(themeSauvegarde);
+});
+
 //-------- Variables globales ---------//
-// Barre de recherche dans le header
 const barreDeRecherche = document.getElementById("headerSearchInput")
 
 //body du tableau d'oeuvre
 const tbody = document.getElementById("tableBody");
 
 // Formulaire d'ajout d'œuvre
-const formAjout = document.getElementById("formAddWork");
+const formAdd= document.getElementById("formAdd");
+const popupAdd = document.getElementById("addModal");
+const statutSelectAdd = document.getElementById("statutAdd");
+const noteInputAdd = document.getElementById("noteAdd");
 
-// Popup qui contient le formulaire d'ajout d'oeuvre
-const popupAjout = document.getElementById("addWorkModal");
+// Formulaire de détails d'une oeuvre
+const formDetails = document.getElementById("formDetails");
+const popupDetails = document.getElementById("detailsModal");
+const statutSelectDetails = document.getElementById("statutDetails");
+const noteInputDetails = document.getElementById("noteDetails");
 
-// Champ du statut dans le formulaire d'ajout d'oeuvre
-const statutSelect = document.getElementById('statut');
-
-// Champ de note dans le formulaire d'ajout d'œuvre
-const noteInput = document.getElementById("note");
+// petite variable qui aide pour le contrôle de la note
 let ancienneValeur = "";
 
-//Option de type pour la modification inline du tableau
+//Options pour la modification inline du tableau
 const optionsType = [
   "Film", "Serie", "Jeu", "Manga",
   "Manhwa", "Webcomic", "Video", "Autre"
 ];
-//Option de statut pour la modification inline du tableau
+
 const optionsStatut = [
   "Termine",
   "En cours",
@@ -37,19 +59,30 @@ const optionsStatut = [
 let total = document.getElementById("total");
 let displayed = document.getElementById("displayed")
 
-// DARK MODE / LIGHT MODE // 
 const btnSettings = document.getElementById("btnSettings");
 const panelSettings = document.getElementById("settingsPanel");
 const toggleDark = document.getElementById("toggleDark");
 const themeIcon = document.getElementById("themeIcon");
 const html = document.documentElement;
 
+let trieTitre = 0;
+let trieNote = 0;
+let ordreOriginal = [];
+
 // -------- Fonctions principales ---------//
 
 async function chargerOeuvres() {
   try {
+    // Réinitialisation des tris
+    trieTitre = 0;
+    trieNote = 0;
+    document.getElementById("titreAsc").classList.remove("active");
+    document.getElementById("titreDesc").classList.remove("active");
+    document.getElementById("noteAsc").classList.remove("active");
+    document.getElementById("noteDesc").classList.remove("active");
+
     // Appel de l'API pour récupérer la liste des œuvres
-    const res = await fetch("http://localhost:3000/oeuvres");
+    const res = await fetch(API_URL);
     const oeuvres = await res.json();
 
     tbody.innerHTML = "";
@@ -68,38 +101,67 @@ async function chargerOeuvres() {
             <td class="tdNote">${o.note ?? '-'}</td>
             <td class="tdProgression">${o.progression || '-'}</td>
             <td class="tdCommentaire">${o.commentaire || '-'}</td>
-            <td><button class="btn-suppr" data-id="${o.id}">Supprimer</button></td>
+            <td>
+                <button class="btn-option btnInfo" data-id="${o.id}" title="Détails">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                    <path d="M16 6h3a1 1 0 0 1 1 1v11a2 2 0 0 1 -4 0v-13a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1v12a3 3 0 0 0 3 3h11"/>
+                    <path d="M8 8l4 0"/>
+                    <path d="M8 12l4 0"/>
+                    <path d="M8 16l4 0"/>
+                  </svg>
+                </button>
+                <button class="btn-option btnRecherche" data-id="${o.id}" title="Rechercher">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                    <path d="M21 12a9 9 0 1 0 -9 9"/>
+                    <path d="M3.6 9h16.8"/>
+                    <path d="M3.6 15h7.9"/>
+                    <path d="M11.5 3a17 17 0 0 0 0 18"/>
+                    <path d="M12.5 3a16.984 16.984 0 0 1 2.574 8.62"/>
+                    <path d="M15 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/>
+                    <path d="M20.2 20.2l1.8 1.8"/>
+                  </svg>
+                </button>
+                <button class="btn-option btnSuppr" data-id="${o.id}" title="Supprimer">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                    <path d="M4 7l16 0"/>
+                    <path d="M10 11l0 6"/>
+                    <path d="M14 11l0 6"/>
+                    <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/>
+                    <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/>
+                  </svg>
+                </button>
+            </td>
         `;
-
-        // Ajout de l'action de suppression sur le bouton
-        tr.querySelector(".btn-suppr").onclick = () => supprimerOeuvre(o.id);
-
         tbody.appendChild(tr);
     });
+
+    // Sauvegarde de l'ordre original pour le tri
+    ordreOriginal = Array.from(tbody.querySelectorAll("tr")).map(tr => tr.dataset.id);
     displayed.textContent = tbody.querySelectorAll("tr").length;
   } catch (e) {
-    console.error("Erreur API:", e);
+    console.error("Erreur lors du chargement des œuvres :", e);
   }
 };
 
 // Fonction pour ajouter une œuvre
 async function ajouterOeuvre(){
   // Vérifie que tous les champs obligatoires sont remplis
-  if (formAjout.checkValidity()) {
-    const noteValue = formAjout.note.value;
+  if (formAdd.checkValidity()) {
+    const noteValue = formAdd.note.value;
     
     const data = {
-      titre: formAjout.titre.value,
-      type: formAjout.type.value,
-      statut: formAjout.statut.value,
+      titre: formAdd.titre.value.trim(),
+      type: formAdd.type.value,
+      statut: formAdd.statut.value,
       note: noteValue ? Number(noteValue.replace(",", ".")) : null,
-      progression: formAjout.progression.value || null,
-      commentaire: formAjout.commentaire.value || null
+      progression: formAdd.progression.value.trim() || null,
+      commentaire: formAdd.commentaire.value.trim() || null
     };
 
-    if (data.statut === "A faire/voir" || data.statut === "Sortie prochaine") {data.note = null} 
-
-    await fetch("http://localhost:3000/oeuvres", {
+    await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
@@ -108,39 +170,41 @@ async function ajouterOeuvre(){
 }
 
 async function supprimerOeuvre(id){
-  await fetch(`http://localhost:3000/oeuvres/${id}`, {
-    method: "DELETE"
-  });
+  // Confirmation avant suppression pour éviter les suppressions accidentelles
+  if (!confirm("Supprimer cette œuvre ?")) return;
+
+  await fetch(`${API_URL}/${id}`, { method: "DELETE" });
   
-  // Supprime uniquement la ligne concernée
   const ligne = document.querySelector(`tr[data-id="${id}"]`);
   if (ligne) ligne.remove();
 
   majCompteurs();
 }
 
+async function modifierOeuvre(id, data) {
+  const res = await fetch(`${API_URL}/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+
+  if (!res.ok) throw new Error("Erreur API");
+  return res;
+}
+
 // -------- Fonctions d'interface ---------//
 
 // Fonction de recherche d'œuvre dans le tableau
 function rechercheOeuvre() {
-
-  // Récupère le texte dans la barre de recherche puis transformation en minuscules
   const recherche = barreDeRecherche.value.toLowerCase();
-
-  // Sélectionne les lignes du tableau
   const lignes = document.querySelectorAll("#tableBody tr");
 
   lignes.forEach(ligne => {
-    // Fait disparaître les lignes qui ne contiennent pas le texte ni dans leur titre ni dans leur type
-    if (
-      !ligne.cells[0].textContent.toLowerCase().includes(recherche) &&
-      !ligne.cells[1].textContent.toLowerCase().includes(recherche)
-    ){
-      ligne.style.display = "none";
-    } else{
-      ligne.style.display = "";
-    }
+    const correspondTitre = ligne.cells[0].textContent.toLowerCase().includes(recherche);
+    const correspondType  = ligne.cells[1].textContent.toLowerCase().includes(recherche);
+    ligne.style.display = correspondTitre || correspondType ? "" : "none";
   });
+
   majCompteurs();
 }
 
@@ -152,116 +216,132 @@ function majCompteurs() {
   displayed.textContent = visibles.length;
 }
 
-function sortTableTitre() {
-  let tableTitre = [];
-  const lignes = document.querySelectorAll("#tableBody tr");
-  lignes.forEach(ligne => {
-    tableTitre.push(ligne.cells[0].textContent.toLowerCase());
-  });
-  tableTitre.sort();
+// Réinitialise les flèches de tri sauf pour la colonne en cours
+function resetFleches(sauf) {
+  if (sauf !== "titre") {
+    document.getElementById("titreAsc").classList.remove("active");
+    document.getElementById("titreDesc").classList.remove("active");
+    trieTitre = 0;
+  }
+  if (sauf !== "note") {
+    document.getElementById("noteAsc").classList.remove("active");
+    document.getElementById("noteDesc").classList.remove("active");
+    trieNote = 0;
+  }
 }
 
-// -------- Gestion des événements ---------//
+function sortTableTitre() {
+  resetFleches("titre");
+  trieTitre = (trieTitre + 1) % 3;
 
-//Déclenche la fonction de recheche a chaque modification dans la barre de recherche
-barreDeRecherche.addEventListener("input", rechercheOeuvre);
+  // Retour à l'ordre original
+  if (trieTitre === 0) {
+    ordreOriginal.forEach(id => {
+      const ligne = tbody.querySelector(`tr[data-id="${id}"]`);
+      if (ligne) tbody.appendChild(ligne);
+    });
+    document.getElementById("titreAsc").classList.remove("active");
+    document.getElementById("titreDesc").classList.remove("active");
+    return;
+  }
 
-document.getElementById("colTitre").addEventListener("click", sortTableTitre);
+  const lignes = Array.from(tbody.querySelectorAll("tr"));
+  lignes.sort((a, b) => {
+    const titreA = a.cells[0].textContent.trim().toLowerCase();
+    const titreB = b.cells[0].textContent.trim().toLowerCase();
+    return trieTitre === 1
+      ? titreA.localeCompare(titreB)
+      : -titreA.localeCompare(titreB);
+  });
 
-document.querySelector("#btnAddHeader").addEventListener("click", () => {
-    popupAjout.showModal();
-});
+  document.getElementById("titreAsc").classList.toggle("active", trieTitre === 1);
+  document.getElementById("titreDesc").classList.toggle("active", trieTitre === 2);
+  lignes.forEach(ligne => tbody.appendChild(ligne));
+}
 
-document.querySelector("#btnCloseAddModal").addEventListener("click", () => {
-    popupAjout.close();
-});
+function sortTableNote() {
+  resetFleches("note");
+  trieNote = (trieNote + 1) % 3;
 
-document.querySelector("#btnCancelAddWork").addEventListener("click", () => {
-    popupAjout.close();
-    formAjout.reset();     // Vide les champs
+  // Retour à l'ordre original
+  if (trieNote === 0) {
+    ordreOriginal.forEach(id => {
+      const ligne = tbody.querySelector(`tr[data-id="${id}"]`);
+      if (ligne) tbody.appendChild(ligne);
+    });
+    document.getElementById("noteAsc").classList.remove("active");
+    document.getElementById("noteDesc").classList.remove("active");
+    return;
+  }
 
-    noteInput.disabled = false;    // Reset les charactéristiques de la note
-    noteInput.setAttribute('required', '');
-});
+  const lignes = Array.from(tbody.querySelectorAll("tr"));
+  lignes.sort((a, b) => {
+    const noteA = a.cells[3].textContent.trim();
+    const noteB = b.cells[3].textContent.trim();
 
-formAjout.addEventListener("submit", async (e) => {
-    e.preventDefault(); // Empêche le rechargement de la page et l'erreur de redirection
-    
-    await ajouterOeuvre(); // Exécute la fonction Fetch
-    
-    popupAjout.close();    // Ferme le popup
-    formAjout.reset();     // Vide les champs
+    // Les œuvres sans note sont toujours placées en dernier
+    if (noteA === "-") return 1;
+    if (noteB === "-") return -1;
 
-    noteInput.disabled = false;    // Reset les charactéristiques de la note
-    noteInput.setAttribute('required', '');
+    const diff = parseFloat(noteA) - parseFloat(noteB);
+    return trieNote === 1 ? diff : -diff;
+  });
 
-    await chargerOeuvres(); // Rafraîchit le tableau sans recharger la page
-});
+  document.getElementById("noteAsc").classList.toggle("active", trieNote === 1);
+  document.getElementById("noteDesc").classList.toggle("active", trieNote === 2);
+  lignes.forEach(ligne => tbody.appendChild(ligne));
+}
 
-// Vérification du statut pour bloquer ou non la note
-statutSelect.addEventListener('change', () => {
-  const statutsSansNote = ['A faire/voir', 'Sortie prochaine'];
+// Rend la note obligatoire ou non selon le statut 
+function gererNoteObligatoire(statutSelect, noteInputAdd, spanId) {
+  const statutsSansNote = ["En cours", "A faire/voir", "Sortie prochaine"];
 
   if (statutsSansNote.includes(statutSelect.value)) {
-      noteInput.disabled = true;
-      noteInput.value = '';         // vide la note si déjà remplie
-      noteInput.removeAttribute('required');    
+    noteInputAdd.removeAttribute('required');
+    document.getElementById(spanId).style.visibility = "hidden";
   } else {
-      noteInput.disabled = false;
-      noteInput.setAttribute('required', '');
+    noteInputAdd.setAttribute('required', '');
+    document.getElementById(spanId).style.visibility = "visible";
   }
-})
+}
 
-// Vérification et contrainte pour la note dans le formulaire d'ajout d'œuvre
-noteInput.addEventListener("input", (e) => {
-  const v = e.target.value;
+// Ouvre le modal détails et pré-remplit les champs avec les valeurs de la ligne
+function showModalDetails(id) {
+  popupDetails.showModal();
+  popupDetails.dataset.id = id;
 
-  // Chiffres obligatoires avant virgule ou point, 2 décimales max et 1 point/virgule max (pas au début), sinon suppression
-  if (/^\d+([.,]\d{0,2})?$/.test(v) || v === "") {
-    ancienneValeur = v;
-  } else {
-    e.target.value = ancienneValeur;
-  }
-});
+  const oeuvre = document.querySelector(`tr[data-id="${id}"]`);
 
-// Nettoyage pour éviter les notes qui termine par un . ou une , 
-noteInput.addEventListener("blur", (e) => {
-  const cleaned = e.target.value.replace(/[.,]$/, "");
-  e.target.value = cleaned;
-  ancienneValeur = cleaned;
-});
+  const titre      = oeuvre.querySelector(".tdTitre").textContent;
+  const type       = oeuvre.querySelector(".tdType").textContent;
+  const statut     = oeuvre.querySelector(".tdStatut").textContent;
+  const note       = oeuvre.querySelector(".tdNote").textContent;
+  const progression = oeuvre.querySelector(".tdProgression").textContent;
+  const commentaire = oeuvre.querySelector(".tdCommentaire").textContent;
 
-// Ajout d'un evenement sur les cellules du tableau qui permet d'ouvrir des SELECT ou des INPUT afin de modifier leur contenu
-tbody.addEventListener("click", (e) => {
-  // Récupère la cellule la plus proche de l'élément cliqué
-  // (utile si clique sur le texte ou un élément à l'intérieur)
-  const td = e.target.closest("td");
-  if (!td) return;
+  document.getElementById("titreDetails").value       = titre;
+  document.getElementById("typeDetails").value        = type;
+  document.getElementById("statutDetails").value      = statut;
+  document.getElementById("noteDetails").value        = note === "-" ? "" : note;
+  document.getElementById("progressionDetails").value = progression === "-" ? "" : progression;
+  document.getElementById("commentaireDetails").value = commentaire === "-" ? "" : commentaire;
 
-  // si la cellule correspond au type on ouvre un select avec les options (identique au formulaire de création d'oeuvre)
-  if (td.classList.contains("tdType")) {
-    ouvrirSelectDansCellule(td, optionsType);
-  }
+  // Sauvegarde des valeurs originales pour détecter les modifications au submit
+  valeurOriginalesDetails = { titre, type, statut, note, progression, commentaire };
 
-  // pareil que le if précedent mais pour le statut
-  if (td.classList.contains("tdStatut")) {
-    ouvrirSelectDansCellule(td, optionsStatut);
-  }
+  // Réinitialise l'ancienne valeur de note pour la validation
+  ancienneValeurDetails = note === "-" ? "" : note;
 
-  // Pour la modification des champs qui n'utilisent pas de chois prédéfinis
-  if (td.classList.contains("tdTitre") || td.classList.contains("tdNote") || td.classList.contains("tdProgression") || td.classList.contains("tdCommentaire")) {
-    modificationCelleluleText(td);
-  }
-});
+  gererNoteObligatoire(statutSelectDetails, noteInputDetails, "spanRequiredNoteDetails");
+}
 
-
+// Ouvre un SELECT dans une cellule pour la modification inline (type, statut)
 function ouvrirSelectDansCellule(td, options) {
   if (td.querySelector("select")) return;
 
   const valeurInitiale = td.textContent.trim();
   const select = document.createElement("select");
 
-  // création des options contenus dans le select
   options.forEach(opt => {
     const option = document.createElement("option");
     option.value = opt;
@@ -273,19 +353,20 @@ function ouvrirSelectDansCellule(td, options) {
   td.textContent = "";
   td.appendChild(select);
   select.focus();
-  
+
   let validated = false;
 
   const valider = async () => {
     if (validated) return;
-    validated = true;    
+    validated = true;
+
     const nouvelleValeur = select.value.trim();
     td.textContent = nouvelleValeur;
 
+    // Pas de modification → pas d'appel API
     if (nouvelleValeur === valeurInitiale) return;
 
-    const tr = td.closest("tr");
-    const id = tr.dataset.id;
+    const id = td.closest("tr").dataset.id;
 
     let champ;
     if (td.classList.contains("tdType")) champ = "type";
@@ -297,30 +378,24 @@ function ouvrirSelectDansCellule(td, options) {
       return;
     }
 
-    const response = await fetch(`http://localhost:3000/oeuvres/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ [champ]: nouvelleValeur })
-    });
-
-    if (!response.ok) {
-      td.textContent = valeurInitiale; // rollback si erreur API
+    try {
+      await modifierOeuvre(id, { [champ]: nouvelleValeur });
+    } catch {
+      // Rollback si erreur API
+      td.textContent = valeurInitiale;
     }
   };
 
-  select.addEventListener("blur", valider);
-  select.addEventListener("change", valider);
-};
+  select.addEventListener("blur", () => valider().catch(console.error));
+  select.addEventListener("change", () => valider().catch(console.error));
+}
 
+// Ouvre un INPUT dans une cellule pour la modification inline (titre, note, progression, commentaire)
 async function modificationCelleluleText(td) {
-
-  // Empêche d’ouvrir plusieurs inputs dans la même cellule
   if (td.querySelector("input")) return;
 
-  // Stocke la valeur initiale
   const valeurInitiale = td.textContent.trim();
 
-  // Création d’un input temporaire
   const input = document.createElement("input");
   input.type = "text";
   input.value = valeurInitiale === "-" ? "" : valeurInitiale;
@@ -335,40 +410,33 @@ async function modificationCelleluleText(td) {
   // Filtre la saisie en temps réel pour le champ note
   if (td.classList.contains("tdNote")) {
     input.addEventListener("input", () => {
-      let v = input.value.replace(/[^\d.,]/g, ""); // supprime les caractères interdits
-
-      // Sépare sur le premier . ou ,
+      let v = input.value.replace(/[^\d.,]/g, "");
       const parts = v.split(/([.,])/);
       if (parts.length >= 3) {
-        // parts[0] = entier, parts[1] = séparateur, parts[2+] = décimales + parasites
         const decimales = parts.slice(2).join("").replace(/[.,]/g, "").slice(0, 2);
         v = parts[0] + parts[1] + decimales;
       }
-
       input.value = v;
     });
   }
 
   let cancelled = false;
-  // Fonction de validation (appel API)
+
   const validerTexte = async () => {
     if (cancelled) return;
     let nouvelleValeur = input.value.trim();
 
-    // Si aucune modification → on restaure
+    // Pas de modification → restaure sans appel API
     if (nouvelleValeur === valeurInitiale) {
       td.textContent = valeurInitiale;
       return;
     }
 
-    // Récupération de l'id via la ligne
-    const tr = td.closest("tr");
-    const id = tr.dataset.id;
+    const id = td.closest("tr").dataset.id;
 
-    // Identification du champ à modifier
     let champ;
-    if (td.classList.contains("tdTitre")) champ = "titre";
-    if (td.classList.contains("tdNote")) champ = "note";
+    if (td.classList.contains("tdTitre"))      champ = "titre";
+    if (td.classList.contains("tdNote"))        champ = "note";
     if (td.classList.contains("tdProgression")) champ = "progression";
     if (td.classList.contains("tdCommentaire")) champ = "commentaire";
 
@@ -378,44 +446,42 @@ async function modificationCelleluleText(td) {
       return;
     }
 
-    // Validation spécifique pour la note
+    // Titre vide non autorisé
+    if (champ === "titre" && nouvelleValeur === "") {
+      td.textContent = valeurInitiale;
+      return;
+    }
+
+    // Note : vide = null (suppression), sinon validation du format
     if (champ === "note") {
-      if (!/^\d+([.,]\d{0,2})?$/.test(nouvelleValeur)) {
+      if (nouvelleValeur === "") {
+        nouvelleValeur = null;
+      } else if (!/^\d+([.,]\d{0,2})?$/.test(nouvelleValeur)) {
         td.textContent = valeurInitiale;
         return;
+      } else {
+        nouvelleValeur = Number(nouvelleValeur.replace(",", "."));
       }
-      nouvelleValeur = Number(nouvelleValeur.replace(",", "."));
+    }
+
+    // Progression et commentaire vides → null en base
+    if ((champ === "progression" || champ === "commentaire") && nouvelleValeur === "") {
+      nouvelleValeur = null;
     }
 
     try {
-      // Envoi PATCH vers l’API
-      const res = await fetch(`http://localhost:3000/oeuvres/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ [champ]: nouvelleValeur })
-      });
-
-      if (!res.ok) throw new Error();
-
-      // Mise à jour visuelle si succès
-      td.textContent = nouvelleValeur === "" ? "-" : nouvelleValeur;
-
+      await modifierOeuvre(id, { [champ]: nouvelleValeur });
+      td.textContent = nouvelleValeur ?? "-";
     } catch (error) {
       console.error("Erreur API:", error);
       td.textContent = valeurInitiale;
     }
   };
 
-  // Validation quand on clique ailleurs (une seule fois)
   input.addEventListener("blur", validerTexte, { once: true });
 
-  // Gestion clavier
   input.addEventListener("keydown", (e) => {
-
-    // Entrée → validation
     if (e.key === "Enter") input.blur();
-
-    // Échap → annulation
     if (e.key === "Escape") {
       cancelled = true;
       td.textContent = valeurInitiale;
@@ -423,14 +489,193 @@ async function modificationCelleluleText(td) {
   });
 }
 
-// Ouvrir / fermer
+// -------- Gestion des événements ---------//
+
+barreDeRecherche.addEventListener("input", rechercheOeuvre);
+
+document.getElementById("colTitre").addEventListener("click", sortTableTitre);
+document.getElementById("colNote").addEventListener("click", sortTableNote);
+
+// Ouverture du modal d'ajout
+document.querySelector("#btnAddHeader").addEventListener("click", () => {
+  popupAdd.showModal();
+});
+
+// Fermeture du modal d'ajout via la croix
+document.querySelector("#btnCloseAddModal").addEventListener("click", () => {
+  popupAdd.close();
+});
+
+// Annulation du formulaire d'ajout
+document.querySelector("#btnCancelAdd").addEventListener("click", () => {
+  popupAdd.close();
+  formAdd.reset();
+  noteInputAdd.setAttribute('required', '');
+});
+
+// Soumission du formulaire d'ajout
+formAdd.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  await ajouterOeuvre();
+  popupAdd.close();
+  formAdd.reset();
+  noteInputAdd.setAttribute('required', '');
+  await chargerOeuvres();
+});
+
+// Fermeture du modal détails via la croix
+document.getElementById("btnCloseDetailsModal").addEventListener("click", () => {
+  popupDetails.close();
+  valeurOriginalesDetails = {};
+});
+
+// Annulation du modal détails
+document.getElementById("btnCancelDetailsModal").addEventListener("click", () => {
+  popupDetails.close();
+  formDetails.reset();
+  valeurOriginalesDetails = {};
+});
+
+// Soumission du formulaire détails (modification)
+formDetails.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const id = popupDetails.dataset.id;
+
+  const nouvellesValeurs = {
+    titre:       formDetails.titre.value.trim(),
+    type:        formDetails.type.value,
+    statut:      formDetails.statut.value,
+    note:        formDetails.note.value || "-",
+    progression: formDetails.progression.value.trim() || "-",
+    commentaire: formDetails.commentaire.value.trim() || "-"
+  };
+
+  // Ne garde que les champs qui ont réellement changé
+  const data = {};
+  for (const champ in nouvellesValeurs) {
+    if (nouvellesValeurs[champ] !== valeurOriginalesDetails[champ]) {
+      data[champ] = nouvellesValeurs[champ] === "-" ? null : nouvellesValeurs[champ];
+    }
+  }
+
+  // Aucune modification → fermeture sans appel API
+  if (Object.keys(data).length === 0) {
+    popupDetails.close();
+    return;
+  }
+
+  // Conversion de la note en nombre si elle a été modifiée
+  if (data.note !== undefined && data.note !== null) {
+    data.note = Number(String(data.note).replace(",", "."));
+  }
+
+  try {
+    await modifierOeuvre(id, data);
+    popupDetails.close();
+    valeurOriginalesDetails = {};
+    await chargerOeuvres();
+  } catch (error) {
+    console.error("Erreur API:", error);
+  }
+});
+
+// Rend la note obligatoire ou non selon le statut (formulaire ajout)
+statutSelectAdd.addEventListener('change', () => {
+  gererNoteObligatoire(statutSelectAdd, noteInputAdd, "spanRequiredNoteAdd");
+});
+
+// Rend la note obligatoire ou non selon le statut (formulaire détails)
+statutSelectDetails.addEventListener('change', () => {
+  gererNoteObligatoire(statutSelectDetails, noteInputDetails, "spanRequiredNoteDetails");
+});
+
+// Validation de la saisie note (formulaire ajout)
+noteInputAdd.addEventListener("input", (e) => {
+  const v = e.target.value;
+  if (/^\d+([.,]\d{0,2})?$/.test(v) || v === "") {
+    ancienneValeurAdd = v;
+  } else {
+    e.target.value = ancienneValeurAdd;
+  }
+});
+
+noteInputAdd.addEventListener("blur", (e) => {
+  const cleaned = e.target.value.replace(/[.,]$/, "");
+  e.target.value = cleaned;
+  ancienneValeurAdd = cleaned;
+});
+
+// Validation de la saisie note (formulaire détails) — même logique que le formulaire ajout
+noteInputDetails.addEventListener("input", (e) => {
+  const v = e.target.value;
+  if (/^\d+([.,]\d{0,2})?$/.test(v) || v === "") {
+    ancienneValeurDetails = v;
+  } else {
+    e.target.value = ancienneValeurDetails;
+  }
+});
+
+noteInputDetails.addEventListener("blur", (e) => {
+  const cleaned = e.target.value.replace(/[.,]$/, "");
+  e.target.value = cleaned;
+  ancienneValeurDetails = cleaned;
+});
+
+// Gestion des clics sur le tableau (boutons d'options + modification inline)
+tbody.addEventListener("click", (e) => {
+
+  // Bouton supprimer
+  const btnSuppr = e.target.closest(".btnSuppr");
+  if (btnSuppr) {
+    supprimerOeuvre(btnSuppr.dataset.id);
+    return;
+  }
+
+  // Bouton détails
+  const btnInfo = e.target.closest(".btnInfo");
+  if (btnInfo) {
+    showModalDetails(btnInfo.dataset.id);
+    return;
+  }
+
+  // Bouton recherche Google
+  const btnRecherche = e.target.closest(".btnRecherche");
+  if (btnRecherche) {
+    const tr = btnRecherche.closest("tr");
+    if (!tr) return;
+    const titre = tr.querySelector(".tdTitre").textContent;
+    const progression = tr.querySelector(".tdProgression").textContent;
+    let requete = titre;
+    if (progression && progression !== "-") requete += " " + progression;
+    window.open(`https://www.google.com/search?q=${encodeURIComponent(requete)}`, "_blank");
+    return;
+  }
+
+  // Modification inline
+  const td = e.target.closest("td");
+  if (!td) return;
+
+  if (td.classList.contains("tdType"))   ouvrirSelectDansCellule(td, optionsType);
+  if (td.classList.contains("tdStatut")) ouvrirSelectDansCellule(td, optionsStatut);
+
+  if (
+    td.classList.contains("tdTitre") ||
+    td.classList.contains("tdNote") ||
+    td.classList.contains("tdProgression") ||
+    td.classList.contains("tdCommentaire")
+  ) {
+    modificationCelleluleText(td);
+  }
+});
+
+// Ouvrir / fermer le panel paramètres
 btnSettings.addEventListener("click", (e) => {
   e.stopPropagation();
   const isOpen = panelSettings.classList.toggle("open");
   btnSettings.classList.toggle("active", isOpen);
 });
 
-// Fermer en cliquant dehors
+// Fermer le panel paramètres en cliquant en dehors
 document.addEventListener("click", (e) => {
   if (!panelSettings.contains(e.target) && e.target !== btnSettings) {
     panelSettings.classList.remove("open");
@@ -438,15 +683,9 @@ document.addEventListener("click", (e) => {
   }
 });
 
-// Dark / Light mode
+// Basculer entre dark et light mode
 toggleDark.addEventListener("change", () => {
-  if (toggleDark.checked) {
-    html.setAttribute("data-theme", "dark");
-    themeIcon.textContent = "🌙";
-    document.querySelector(".item-desc").textContent = "Mode sombre activé";
-  } else {
-    html.setAttribute("data-theme", "light");
-    themeIcon.textContent = "☀️";
-    document.querySelector(".item-desc").textContent = "Mode clair activé";
-  }
+  const nouveauTheme = toggleDark.checked ? "dark" : "light";
+  appliquerTheme(nouveauTheme);
+  localStorage.setItem("theme", nouveauTheme);
 });
