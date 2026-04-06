@@ -28,15 +28,23 @@
 --shadow: 0 24px 60px rgba(0,0,0,0.12);
 }
 
-/* Style global page */
+
 body {
     background: var(--bg);
     font-family: 'Times New Roman', Times, Didot, Palatino, serif;
     color: var(--text);
+
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
 }
 
 /* ---------- HEADER ---------- */
 .header {
+    flex: 0 0 10vh;
+    min-height: 60px;
+    width: 100%;
     background: var(--surface);
     padding: 12px 20px;
     display: flex;
@@ -331,7 +339,8 @@ box-shadow: 0 1px 4px rgba(0,0,0,0.3);
 }
 
 #tableauOeuvres {
-    padding-top: 10px;
+    flex: 1 1 0;
+    overflow-y: auto;
 }
 
 table {
@@ -339,6 +348,7 @@ table {
     border-collapse: collapse;
     background: var(--surface);
     table-layout: fixed;
+    padding-top: 0; /* ← retirer l'ancien padding-top: 10px */
 }
 
 #tableauOeuvres th:nth-child(1) { width: 30%; } /* Titre */
@@ -363,6 +373,9 @@ td {
 
 thead {
     background: var(--surface2);
+    position: sticky;
+    top: 0;
+    z-index: 10; /* reste visible pendant le scroll */
 }
 
 .th-pointer{
@@ -541,16 +554,16 @@ dialog[open]::backdrop {
 
 /* ---- Footer ---- */
 .footer {
+    flex: 0 0 auto;
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 2px 20px;
+    padding: 6px 20px;
     background-color: #222;
     color: white;
     font-size: 14px;
-    position: fixed;
-    bottom: 0;
+    line-height: 1.6;
 }
 
 .footer-left p {

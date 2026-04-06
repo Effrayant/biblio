@@ -38,6 +38,7 @@ const formDetails = document.getElementById("formDetails");
 const popupDetails = document.getElementById("detailsModal");
 const statutSelectDetails = document.getElementById("statutDetails");
 const noteInputDetails = document.getElementById("noteDetails");
+let valeurOriginalesDetails;
 
 // petite variable qui aide pour le contrôle de la note
 let ancienneValeur = "";
@@ -161,23 +162,23 @@ async function ajouterOeuvre(){
       commentaire: formAdd.commentaire.value.trim() || null
     };
 
-    await fetch(API_URL, {
+    const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
     });
+
+    if(!res.ok) throw new Error("Erreur API pour l'ajout d'oeuvre");
+    return res;
   }
 }
 
-async function supprimerOeuvre(id){
-  // Confirmation avant suppression pour éviter les suppressions accidentelles
+async function supprimerOeuvre(id) {
   if (!confirm("Supprimer cette œuvre ?")) return;
+  const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
 
-  await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-  
-  const ligne = document.querySelector(`tr[data-id="${id}"]`);
-  if (ligne) ligne.remove();
-
+  if (!res.ok) { console.error("Échec suppression"); return; }
+  document.querySelector(`tr[data-id="${id}"]`)?.remove();
   majCompteurs();
 }
 
@@ -194,7 +195,7 @@ async function modifierOeuvre(id, data) {
 
 // -------- Fonctions d'interface ---------//
 
-// Fonction de recherche d'œuvre dans le tableau
+// Fonction de recherche d'œuvre dans le tableau (titre et s)
 function rechercheOeuvre() {
   const recherche = barreDeRecherche.value.toLowerCase();
   const lignes = document.querySelectorAll("#tableBody tr");
@@ -312,17 +313,17 @@ function showModalDetails(id) {
 
   const oeuvre = document.querySelector(`tr[data-id="${id}"]`);
 
-  const titre      = oeuvre.querySelector(".tdTitre").textContent;
-  const type       = oeuvre.querySelector(".tdType").textContent;
-  const statut     = oeuvre.querySelector(".tdStatut").textContent;
-  const note       = oeuvre.querySelector(".tdNote").textContent;
+  const titre = oeuvre.querySelector(".tdTitre").textContent;
+  const type = oeuvre.querySelector(".tdType").textContent;
+  const statut = oeuvre.querySelector(".tdStatut").textContent;
+  const note = oeuvre.querySelector(".tdNote").textContent;
   const progression = oeuvre.querySelector(".tdProgression").textContent;
   const commentaire = oeuvre.querySelector(".tdCommentaire").textContent;
 
-  document.getElementById("titreDetails").value       = titre;
-  document.getElementById("typeDetails").value        = type;
-  document.getElementById("statutDetails").value      = statut;
-  document.getElementById("noteDetails").value        = note === "-" ? "" : note;
+  document.getElementById("titreDetails").value = titre;
+  document.getElementById("typeDetails").value = type;
+  document.getElementById("statutDetails").value = statut;
+  document.getElementById("noteDetails").value = note === "-" ? "" : note;
   document.getElementById("progressionDetails").value = progression === "-" ? "" : progression;
   document.getElementById("commentaireDetails").value = commentaire === "-" ? "" : commentaire;
 
@@ -330,9 +331,26 @@ function showModalDetails(id) {
   valeurOriginalesDetails = { titre, type, statut, note, progression, commentaire };
 
   // Réinitialise l'ancienne valeur de note pour la validation
-  ancienneValeurDetails = note === "-" ? "" : note;
+  ancienneValeur = note === "-" ? "" : note;
 
   gererNoteObligatoire(statutSelectDetails, noteInputDetails, "spanRequiredNoteDetails");
+}
+
+// -------- Table de correspondance classe CSS → nom du champ ---------//
+const CHAMP_PAR_CLASSE = {
+  tdTitre: "titre",
+  tdType: "type",
+  tdStatut: "statut",
+  tdNote: "note",
+  tdProgression: "progression",
+  tdCommentaire: "commentaire"
+};
+
+function getChampDepuisTd(td) {
+  for (const [cls, champ] of Object.entries(CHAMP_PAR_CLASSE)) {
+    if (td.classList.contains(cls)) return champ;
+  }
+  return null;
 }
 
 // Ouvre un SELECT dans une cellule pour la modification inline (type, statut)
@@ -354,23 +372,18 @@ function ouvrirSelectDansCellule(td, options) {
   td.appendChild(select);
   select.focus();
 
-  let validated = false;
+  const annuler = () => {
+    td.textContent = valeurInitiale;
+  };
 
   const valider = async () => {
-    if (validated) return;
-    validated = true;
-
     const nouvelleValeur = select.value.trim();
     td.textContent = nouvelleValeur;
 
-    // Pas de modification → pas d'appel API
     if (nouvelleValeur === valeurInitiale) return;
 
     const id = td.closest("tr").dataset.id;
-
-    let champ;
-    if (td.classList.contains("tdType")) champ = "type";
-    if (td.classList.contains("tdStatut")) champ = "statut";
+    const champ = getChampDepuisTd(td);
 
     if (!champ) {
       console.warn("Classe tdType ou tdStatut manquante sur la cellule");
@@ -381,17 +394,26 @@ function ouvrirSelectDansCellule(td, options) {
     try {
       await modifierOeuvre(id, { [champ]: nouvelleValeur });
     } catch {
-      // Rollback si erreur API
       td.textContent = valeurInitiale;
     }
   };
 
-  select.addEventListener("blur", () => valider().catch(console.error));
   select.addEventListener("change", () => valider().catch(console.error));
+
+  select.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      annuler();
+      select.removeEventListener("blur", valider);
+    }
+  });
+
+  select.addEventListener("blur", () => {
+    if (select.value === valeurInitiale) td.textContent = valeurInitiale;
+  });
 }
 
 // Ouvre un INPUT dans une cellule pour la modification inline (titre, note, progression, commentaire)
-async function modificationCelleluleText(td) {
+async function modificationCelluleText(td) {
   if (td.querySelector("input")) return;
 
   const valeurInitiale = td.textContent.trim();
@@ -407,7 +429,6 @@ async function modificationCelleluleText(td) {
   input.focus();
   input.select();
 
-  // Filtre la saisie en temps réel pour le champ note
   if (td.classList.contains("tdNote")) {
     input.addEventListener("input", () => {
       let v = input.value.replace(/[^\d.,]/g, "");
@@ -426,19 +447,15 @@ async function modificationCelleluleText(td) {
     if (cancelled) return;
     let nouvelleValeur = input.value.trim();
 
-    // Pas de modification → restaure sans appel API
-    if (nouvelleValeur === valeurInitiale) {
+    // Cas "-" en base = champ vide dans l'input : aucun changement réel
+    const valeurEffective = nouvelleValeur === "" ? "-" : nouvelleValeur;
+    if (valeurEffective === valeurInitiale) {
       td.textContent = valeurInitiale;
       return;
     }
 
     const id = td.closest("tr").dataset.id;
-
-    let champ;
-    if (td.classList.contains("tdTitre"))      champ = "titre";
-    if (td.classList.contains("tdNote"))        champ = "note";
-    if (td.classList.contains("tdProgression")) champ = "progression";
-    if (td.classList.contains("tdCommentaire")) champ = "commentaire";
+    const champ = getChampDepuisTd(td);
 
     if (!champ) {
       console.warn("Classe manquante sur la cellule");
@@ -446,25 +463,16 @@ async function modificationCelleluleText(td) {
       return;
     }
 
-    // Titre vide non autorisé
     if (champ === "titre" && nouvelleValeur === "") {
       td.textContent = valeurInitiale;
       return;
     }
 
-    // Note : vide = null (suppression), sinon validation du format
+    // Format déjà garanti par le filtre "input" temps réel → pas de re-validation ici
     if (champ === "note") {
-      if (nouvelleValeur === "") {
-        nouvelleValeur = null;
-      } else if (!/^\d+([.,]\d{0,2})?$/.test(nouvelleValeur)) {
-        td.textContent = valeurInitiale;
-        return;
-      } else {
-        nouvelleValeur = Number(nouvelleValeur.replace(",", "."));
-      }
+      nouvelleValeur = nouvelleValeur === "" ? null : Number(nouvelleValeur.replace(",", "."));
     }
 
-    // Progression et commentaire vides → null en base
     if ((champ === "progression" || champ === "commentaire") && nouvelleValeur === "") {
       nouvelleValeur = null;
     }
@@ -478,12 +486,19 @@ async function modificationCelleluleText(td) {
     }
   };
 
-  input.addEventListener("blur", validerTexte, { once: true });
+  // Référence nommée pour pouvoir retirer le listener proprement après Escape
+  const onBlur = () => {
+    input.removeEventListener("blur", onBlur);
+    validerTexte().catch(console.error);
+  };
+
+  input.addEventListener("blur", onBlur);
 
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") input.blur();
     if (e.key === "Escape") {
       cancelled = true;
+      input.removeEventListener("blur", onBlur);
       td.textContent = valeurInitiale;
     }
   });
@@ -593,32 +608,32 @@ statutSelectDetails.addEventListener('change', () => {
 noteInputAdd.addEventListener("input", (e) => {
   const v = e.target.value;
   if (/^\d+([.,]\d{0,2})?$/.test(v) || v === "") {
-    ancienneValeurAdd = v;
+    ancienneValeur = v;
   } else {
-    e.target.value = ancienneValeurAdd;
+    e.target.value = ancienneValeur;
   }
 });
 
 noteInputAdd.addEventListener("blur", (e) => {
   const cleaned = e.target.value.replace(/[.,]$/, "");
   e.target.value = cleaned;
-  ancienneValeurAdd = cleaned;
+  ancienneValeur = cleaned;
 });
 
 // Validation de la saisie note (formulaire détails) — même logique que le formulaire ajout
 noteInputDetails.addEventListener("input", (e) => {
   const v = e.target.value;
   if (/^\d+([.,]\d{0,2})?$/.test(v) || v === "") {
-    ancienneValeurDetails = v;
+    ancienneValeur = v;
   } else {
-    e.target.value = ancienneValeurDetails;
+    e.target.value = ancienneValeur;
   }
 });
 
 noteInputDetails.addEventListener("blur", (e) => {
   const cleaned = e.target.value.replace(/[.,]$/, "");
   e.target.value = cleaned;
-  ancienneValeurDetails = cleaned;
+  ancienneValeur = cleaned;
 });
 
 // Gestion des clics sur le tableau (boutons d'options + modification inline)
