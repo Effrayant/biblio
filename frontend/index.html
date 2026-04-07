@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>La biblio Magique !</title>
     <link rel="icon" href="assets/icons/La Biblio magique enchantée.png">
-    <script src="app.js" defer></script>
+    <script type="module" src="js/main.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -169,8 +169,8 @@
                 <span class="span__required">*</span>
 
                 <label for="noteAdd">Note :</label>
-                <input type="text" id="noteAdd" name="note" required>
-                <span class="span__required" id="spanRequiredNoteAdd">*</span>
+                <input type="text" id="noteAdd" name="note">
+                <span></span>
 
                 <label for="progressionAdd">Progression :</label>
                 <input type="text" id="progressionAdd" name="progression">
@@ -234,8 +234,8 @@
                 <span class="span__required">*</span>
 
                 <label for="noteDetails">Note :</label>
-                <input type="text" id="noteDetails" name="note" required>
-                <span class="span__required" id="spanRequiredNoteDetails">*</span>
+                <input type="text" id="noteDetails" name="note">
+                <span></span>
 
                 <label for="progressionDetails">Progression :</label>
                 <input type="text" id="progressionDetails" name="progression">

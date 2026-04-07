@@ -162,9 +162,6 @@ exports.patch = async (req, res) => {
       ...Object.fromEntries(updates)  // fusionne l'état actuel + le patch
     };
 
-    const errCoherence = validator.validationOeuvrePatchCoherence(oeuvreFinale);
-    if (errCoherence) return res.status(400).json({ error: errCoherence });
-
     // UPDATE dynamique à partir des champs envoyés
     const fields = updates.map(([key], i) => `${key} = $${i + 2}`);
     const values = updates.map(([, value]) => value);
