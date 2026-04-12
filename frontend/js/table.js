@@ -6,8 +6,18 @@ const total = document.getElementById("total");
 const displayed = document.getElementById("displayed");
  
 // -------- Options modification inline ---------
-export const optionsType = ["Film", "Série", "Jeu", "Manga", "Manhwa", "Webcomic", "Vidéo", "Autre"];
-export const optionsStatut = ["Terminé", "En cours", "Abandonné", "À faire/voir", "Sortie prochaine"];
+export const optionsType = [
+  "Film", "Série", "Jeu", "Manga",
+  "Manhwa", "Webcomic", "Vidéo", "Autre"
+];
+
+export const optionsStatut = [
+  "Terminé",
+  "En cours",
+  "Abandonné",
+  "À faire/voir",
+  "Sortie prochaine"
+];
  
 // -------- État privé du tri ---------
 let trieTitre = 0;
@@ -219,6 +229,11 @@ export function ouvrirSelectDansCellule(td, options) {
   td.textContent = "";
   td.appendChild(select);
   select.focus();
+  try {
+    select.showPicker();
+  } catch {
+    // fallback silencieux si le navigateur ne supporte pas
+  }
  
   const annuler = () => { td.textContent = valeurInitiale; };
  
@@ -340,3 +355,27 @@ export async function modificationCelluleText(td) {
     }
   });
 }
+
+const tableau = document.getElementById('tableauOeuvres');
+const theadHeight = tableau.querySelector('thead').offsetHeight;
+let scrollTimer;
+
+// permet un scroll smooth qui aligne la ligne du haut pour éviter qu'elle soit semi cacher par le header
+tableau.addEventListener('scroll', () => {
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(() => {
+        const rowHeight = tableau.querySelector('tbody tr')?.offsetHeight;
+        if (!rowHeight) return;
+
+        // Si on est en bas, on laisse scroller jusqu'au bout
+        const atBottom = tableau.scrollTop + tableau.clientHeight >= tableau.scrollHeight - rowHeight / 2;
+        if (atBottom) {
+            tableau.scrollTo({ top: tableau.scrollHeight, behavior: 'smooth' });
+            return;
+        }
+
+        const scrollPos = tableau.scrollTop - theadHeight;
+        const nearest = Math.round(scrollPos / rowHeight) * rowHeight;
+        tableau.scrollTo({ top: nearest + theadHeight, behavior: 'smooth' });
+    }, 80);
+});

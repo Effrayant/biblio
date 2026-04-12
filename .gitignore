@@ -3,3 +3,6 @@ node_modules/
 truc a faire.txt
 futures versions.txt
 pause.txt
+data.db-shm
+data.db-wal
+data.db

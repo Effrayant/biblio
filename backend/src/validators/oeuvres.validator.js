@@ -1,6 +1,6 @@
-const TYPES_AUTORISES = ["Film", "Serie", "Jeu", "Manga", "Manhwa", "Webcomic", "Video", "Autre"];
+const TYPES_AUTORISES = ["Film", "Série", "Jeu", "Manga", "Manhwa", "Webcomic", "Vidéo", "Autre"];
 
-const STATUTS_AUTORISES = ["A faire/voir", "En cours", "Termine", "Abandonne", "Sortie prochaine"];
+const STATUTS_AUTORISES = ["À faire/voir", "En cours", "Terminé", "Abandonné", "Sortie prochaine"];
 
 const CHAMPS_AUTORISES = ["titre", "type", "statut", "note", "progression", "commentaire"];
 

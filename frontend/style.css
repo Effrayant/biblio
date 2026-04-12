@@ -341,7 +341,6 @@ box-shadow: 0 1px 4px rgba(0,0,0,0.3);
 #tableauOeuvres {
     flex: 1 1 0;
     overflow-y: auto;
-    scroll-snap-type: y proximity;
 }
 
 table {
@@ -376,15 +375,11 @@ thead {
     background: var(--surface2);
     position: sticky;
     top: 0;
-    z-index: 10; /* reste visible pendant le scroll */
+    z-index: 10; 
 }
 
 .th-pointer{
     cursor: pointer;
-}
-
-tbody tr {
-    scroll-snap-align: start
 }
 
 tbody tr:nth-child(even) {

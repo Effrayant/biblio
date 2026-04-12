@@ -1,5 +1,3 @@
-require("dotenv").config(); // Charge les variables d'environnement depuis le fichier .env
-
 const express = require("express"); // Framework pour serveur HTTP
 const cors = require("cors");       // Pour les requêtes externes (le frontend ici)
 

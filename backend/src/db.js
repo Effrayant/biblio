@@ -1,11 +1,8 @@
-const { Pool } = require("pg");
+const Database = require("better-sqlite3");
+const path = require("path");
 
-const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-});
+const db = new Database(path.join(__dirname, "../data.db"));
 
-module.exports = pool;
+db.pragma("journal_mode = WAL");
+
+module.exports = db;

@@ -24,5 +24,5 @@ async function supprimerOeuvreAPI(id) {
   const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error("Échec suppression");
 }
-
+ 
 export { API_URL, ajouterOeuvre, modifierOeuvre, supprimerOeuvreAPI}

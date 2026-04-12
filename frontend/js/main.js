@@ -104,10 +104,10 @@ formDetails.addEventListener("submit", async (e) => {
   const id = popupDetails.dataset.id;
  
   const nouvellesValeurs = {
-    titre:       formDetails.titre.value.trim(),
-    type:        formDetails.type.value,
-    statut:      formDetails.statut.value,
-    note:        formDetails.note.value || "-",
+    titre: formDetails.titre.value.trim(),
+    type: formDetails.type.value,
+    statut: formDetails.statut.value,
+    note: formDetails.note.value || "-",
     progression: formDetails.progression.value.trim() || "-",
     commentaire: formDetails.commentaire.value.trim() || "-"
   };
